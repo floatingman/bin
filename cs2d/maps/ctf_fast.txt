@@ -1,0 +1,8 @@
+Fast - Capture the Flag
+
+official CS2D Map by DC
+www.unrealsoftware.de
+
+
+A small and fast-paced capture the flag map!
+

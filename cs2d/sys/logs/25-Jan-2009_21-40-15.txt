@@ -1,0 +1,29 @@
+21:40:15: UDP socket initialized using port 33791
+U.S.G.N.: Your game version is up to date!
+hitclose
+UDP socket initialized using port 36963
+load map 'de_dust'
+----- Server started -----
+Warning: 'Offline / LAN'-mode is ENABLED. Server will NOT be added to serverlist. Other players on the internet will NOT see this server on their serverlist. Enter 'sv_lan 0' in your console or disable the 'Offline / LAN'-checkbox to change this setting.
+[b]PlayWithJoystick connected
+[b]PlayWithJoystick joins the terrorist forces
+[b]MyAss connected
+[b]MyAss joins the counter-terrorist forces
+[b]0_o connected
+[b]0_o joins the counter-terrorist forces
+[b]PlayWithWheel connected
+[b]PlayWithWheel joins the terrorist forces
+[b]Player connected
+[b]Player joins the counter-terrorist forces
+Floatingman joins the terrorist forces
+[b]0_o killed [b]PlayWithJoystick with USP
+[b]PlayWithWheel killed [b]0_o with Glock
+[b]Player killed [b]PlayWithWheel with HE
+[b]0_o killed [b]PlayWithWheel with MP5
+[b]0_o killed [b]PlayWithJoystick with MP5
+[b]MyAss killed Floatingman with MP5
+[b]MyAss killed Floatingman with MP5
+[b]Player killed [b]PlayWithJoystick with M4A1
+[b]Player killed [b]PlayWithWheel with M4A1
+[b]Player killed [b]PlayWithJoystick with M4A1
+[b]Player killed Floatingman with M4A1

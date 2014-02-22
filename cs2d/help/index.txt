@@ -1,0 +1,15 @@
+©255255255- Welcome to the Counter-Strike 2D Help! -
+
+©255255255- Basic Topics -
+»Introduction« | »How to Play« | »USGN«
+»Options« | »Server Options«
+
+©255255255- Advanced Topics -
+»Map Editor« | »Entities«
+»Scripting« | »Commands«
+»Dedicated Server« | »RCon«
+
+©255255255- Weblinks -
+»www.CS2D.com« - official CS2D website
+»www.USGN.de« - official U.S.G.N. website
+»www.UnrealSoftware.de« - CS2D developer website

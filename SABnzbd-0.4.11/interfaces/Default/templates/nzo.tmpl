@@ -1,0 +1,84 @@
+<!--#set global $topmenu="queue"#-->
+<!--#set global $statpath="../.."#-->
+<!--#set global $helpsubject="GUI+Queue"#-->
+<!--#include $webdir + "/inc_top.tmpl"#-->
+
+<script type='text/javascript'>
+function mark_all()
+{
+    var s;
+    var i=0;
+    while(s = document.getElementsByTagName("input")[i++])
+    {
+        if(s.type=='checkbox')
+        {
+            s.checked=true;
+        }
+    }
+}
+</script>
+
+<script type='text/javascript'>
+function unmark_all()
+{
+    var s;
+    var i=0;
+    while(s = document.getElementsByTagName("input")[i++])
+    {
+        if(s.type=='checkbox')
+        {
+            s.checked=false;
+        }
+    }
+}
+</script>
+
+<script type='text/javascript'>
+function invert()
+{
+    var s;
+    var i=0;
+    while(s = document.getElementsByTagName("input")[i++])
+    {
+        if(s.type=='checkbox')
+        {
+            s.checked=!s.checked;
+        }
+    }
+}
+</script>
+
+<span class="SubMenu">
+&nbsp;
+</span>
+
+<br>
+<br>
+<form action="bulk_operation">
+  <input type="hidden" name="session" value="$session">
+  <input type="submit" name="action_key" value="Delete">
+  <br>
+  <input type="submit" name="action_key" value="Top">
+  <input type="submit" name="action_key" value="Up">
+  <input type="submit" name="action_key" value="Down">
+  <input type="submit" name="action_key" value="Bottom">
+  <br>
+  selection:<a href='#/' onclick='mark_all();' target='_self'>all</a>
+            <a href='#/' onclick='unmark_all();' target='_self'>none</a>
+            <a href='#/' onclick='invert();' target='_self'>invert</a>
+  <table>
+      <tr><th></th><th>Filename/Subject</th><th>Size</th><th>Age</th></tr>
+      <!--#set $oddLine = False#-->
+      <!--#for $file in $active_files#-->
+          <!--#set $oddLine = not $oddLine#-->
+          <tr class="<!--#if $oddLine then "oddLine" else "evenLine"#--> active">
+              <td><input type="checkbox" name="$file.nzf_id" <!--#if $file.checked then "checked" else ""#-->></td>
+              <td>$file.filename</td>
+              <td>$file.mb MB</td>
+              <td>$file.age</td>
+          </tr>
+      <!--#end for#-->
+  </table>
+</form>
+
+<!--#include $webdir + "/inc_bottom.tmpl"#-->

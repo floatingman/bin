@@ -1,0 +1,5 @@
+©255255255- Commands -
+Counter-Strike 2D has a lot of scripting commands. It would be very confusing to list all of them here.
+Please visit »www.CS2D.com/help« for the official command reference!
+
+»Return«

@@ -1,0 +1,52 @@
+<!--#set global $topmenu="config"#-->
+<!--#set global $statpath="../.."#-->
+<!--#set global $helpsubject="Configure+Email"#-->
+<!--#include $webdir + "/inc_top.tmpl" #-->
+
+<!--#set global $submenu="email"#-->
+<!--#include $webdir + "/inc_cmenu.tmpl"#-->
+<h2>Email Notification</h2>
+<form action="saveEmail" method="post">
+<div class="EntryBlock">
+<fieldset class="EntryFieldSet">
+<legend>Email Options</legend>
+<label><input type="checkbox" name="email_endjob" value="1" <!--#if $email_endjob > 0 then "checked=1" else ""#--> /> <strong>End-of-job notifications:</strong></label><br>
+Send email when job is completed.<br>
+<br>
+<label><input type="checkbox" name="email_full" value="1" <!--#if $email_full > 0 then "checked=1" else ""#--> /> <strong>Disk full notifications:</strong></label><br>
+Send email when disk is full and SABnzbd is paused.<br>
+<br>
+</fieldset>
+</div>
+<fieldset class="EntryFieldSet">
+<legend>Email Account Settings</legend>
+<strong>SMTP server:</strong><br>
+Set your ISP's server for outgoing email.<br>
+<input type="text" size="35" name="email_server" value="$email_server">
+<br>
+<br>
+<strong>Email recipient:</strong><br>
+Email address to send the email to.<br>
+<input type="text" size="35" name="email_to" value="$email_to">
+<br>
+<br>
+<strong>Email sender:</strong><br>
+Who should we say sent the email?<br>
+<input type="text" size="35" name="email_from" value="$email_from">
+<br>
+<br>
+<strong>OPTIONAL: Account name:</strong><br>
+For authenticated email, account name.<br>
+<input type="text" size="35" name="email_account" value="$email_account">
+<br>
+<br>
+<strong>OPTIONAL: Account password:</strong><br>
+For authenticated email, password.<br>
+<input type="password" size="35" name="email_pwd" value="$email_pwd">
+<input type="hidden" name="session" value="$session">
+</fieldset>
+</div>
+<p><input type="submit" value="Save Changes"></p>
+</form>
+
+<!--#include $webdir + "/inc_bottom.tmpl"#-->

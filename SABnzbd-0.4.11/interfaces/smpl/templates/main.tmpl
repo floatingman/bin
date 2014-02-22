@@ -1,0 +1,789 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>SABnzbd+</title>
+    <link rel="stylesheet" type="text/css" href="static/stylesheets/smpl.css?smpl$version"/>
+    <!--#if $color_scheme#-->
+        <link rel="stylesheet" type="text/css" href="static/stylesheets/colorschemes/$color_scheme?smpl$version"/>
+    <!--#else#-->
+    <link rel="stylesheet" type="text/css" href="static/stylesheets/colorschemes/white.css?smpl$version"/>
+    <!--#end if#-->
+	<link href="rss?mode=history" rel="alternate" type="application/rss+xml" title="SABnzbd+ History" />
+	<link rel="shortcut icon" href="static/images/favicon.ico" />
+
+	<script type="text/javascript" src="static/MochiKit/MochiKit.js"></script>
+	<script type="text/javascript" src="static/PlotKit/PlotKit.js"></script>
+	<!--[if IE]><script type="text/javascript" src="static/excanvas/excanvas.js"></script><![endif]-->
+
+<!--#set $mbdone = (float($mb) - float($mbleft))#-->
+<!--#set $mbdonesrt = float($mbdone) #-->
+
+
+<!--#set $kbpersec = float($kbpersec)#-->
+<!--#set $kbpersecrnd = str(int($kbpersec))#-->
+<!--#if $paused #-->
+<!--#set $kbpersecrnd = "0"#-->
+<!--#end if#-->
+
+	<script type="text/javascript">
+
+	// refresh time in seconds
+	RefreshTime = 5;
+	var jsontimeout;
+	var cookietimeout;
+	var speed = $kbpersecrnd;
+    var gDual = 0;
+    var gUrl;
+    var session = "$session";
+	</script>
+
+
+<script type="text/javascript">
+    function tvAdd(val){
+        var tv = document.getElementById('tvfoldername');
+        tv.value = tv.value + val;
+        previewtv();
+    }
+    function tvSet(val){
+        var tv = document.getElementById('tvfoldername');
+        tv.value = val;
+        previewtv();
+    }
+    function tvClear(){
+        var tv = document.getElementById('tvfoldername');
+        tv.value = '';
+        previewtv();
+    }
+    function previewtv(){
+            var input = document.getElementById('tvfoldername').value;
+            var slash = "\\";
+            input.toLowerCase()
+            input = input.replace(/%ext/g,'avi');
+            input = input.replace(/%sn/g,'Show Name');
+            input = input.replace(/%s.n/g,'Show.Name');
+            input = input.replace(/%s_n/g,'Show_Name');
+            input = input.replace(/%0s/g,'01');
+            input = input.replace(/%s/g,'1');
+            input = input.replace(/%en/g,'Episode Name');
+            input = input.replace(/%e\.n/g,'Episode.Name');
+            input = input.replace(/%e\_n/g,'Episode_Name');
+            input = input.replace(/%0e/g,'05');
+            input = input.replace(/%e/g,'5');
+            var com = document.getElementById('complete_dir').value;
+            if (com.search("/") > 0) slash = "/"
+            var outbox = document.getElementById('previewtv').innerHTML = com+slash+input;
+    }
+function setCookie(c_name,value,expiredays)
+{
+var exdate=new Date();
+exdate.setDate(exdate.getDate()+expiredays);
+document.cookie=c_name+ "=" +value+
+((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
+}
+
+function getCookie(c_name)
+{
+if (document.cookie.length>0)
+  {
+  c_start=document.cookie.indexOf(c_name + "=");
+  if (c_start!=-1)
+    {
+    c_start=c_start + c_name.length+1;
+    c_end=document.cookie.indexOf(";",c_start);
+    if (c_end==-1) c_end=document.cookie.length;
+    return unescape(document.cookie.substring(c_start,c_end));
+    }
+  }
+return "";
+}
+
+function checkCookie()
+{
+var speedlog = [];
+cook=getCookie('speedlog2');
+
+if (cook!=null && cook!="")
+  {
+
+	var speedlog = cook.split(',');
+	for(i=1; i<20; i++) {
+	   speedlog[i-1] = speedlog[i];
+	}
+
+	speedlog[19] = speed;
+
+	var speedstr = speedlog.join(',');
+	setCookie('speedlog2',speedstr,1);
+
+	//drawGraph(speedlog);
+	chartReload(speedlog);
+  }
+  else
+  {
+  setCookie('speedlog2','0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,$kbpersecrnd',1);
+    }
+if (RefreshTime>0) {
+	clearTimeout ( cookietimeout );
+	cookietimeout = setTimeout("checkCookie();", RefreshTime*1000)
+}
+}
+
+
+function checkrefresh()
+{
+	refr=getCookie('smplrefresh');
+	element = document.getElementById('refreshrate');
+	if (refr!=null && refr!="")
+	{
+
+		var refreshtimelist = [2, 3, 5, 10, 15, 30, 60, 180, 300, 0];
+		index = Number(refr);
+		var result = -1;
+		for(i=0; i<10; i++)
+		{
+			if (refreshtimelist[i]==index) result = i;
+		}
+		if (result<0)result=1;
+		element.selectedIndex = result;
+
+		RefreshTime = Number(refr);
+		//alert(refreshr);
+	}
+	else
+	{
+
+		refreshr = element.options[element.selectedIndex].value;
+		//alert(refreshr);
+        if (refreshr)
+        {
+            setCookie('smplrefresh',refreshr,360);
+        }
+	}
+}
+
+
+function applyrefresh(value)
+{
+RefreshTime = value;
+setCookie('smplrefresh',value,360);
+loadingJSON();
+checkCookie();
+}
+
+MochiKit.DOM.addLoadEvent(onpageload);
+
+function onpageload() {
+loadtitle();
+initDynamicTable();
+loadingJSON();
+checkCookie();
+
+//doit();
+
+checkrefresh();
+}
+
+function loadtitle() {
+    url = document.URL
+    if (url.match('#'))
+    {
+        index = url.lastIndexOf('#');
+        url = url.slice(index+1, url.length);
+        url = url.replace('-', '/');
+
+        switch(url)
+        {
+        case 'dv1':
+          lr('queue/','', 1, 1);
+          lrb('history/',1);
+          break;
+        case 'dv2':
+          lr('queue/','', 1, 2);
+          lrb('history/',1);
+          break;
+        case 'queue':
+        case 'history':
+        case 'connections':
+          lr(url,'',1)
+        default:
+          lr(url)
+        }
+    }
+
+}
+
+</script>
+
+
+<!--#set $statusstr2 = "Pause"#-->
+<!--#set $pau = "0"#-->
+<!--#if $paused #-->
+<!--#set $pau = "1"#-->
+<!--#set $status = "<span class='paused'>Paused</span>"#-->
+<!--#set $statusstr2 = "Resume"#-->
+<!--#else if float($kbpersecrnd)>0 #-->
+<!--#set $status = "<span class='downloading'>Downloading</span>"#-->
+<!--#else if float($kbpersecrnd) == 0 #-->
+<!--#set $status = "<span class='idle'>Idle</span>"#-->
+<!--#end if#-->
+
+<script type="text/javascript">
+	var status2 = $pau;
+	var timerId2 = 0;
+    var timerId3 = 0;
+
+	function toggle()
+	{
+    //Pause button toggle - XML request and instant word changing for the link and status
+		if (status2 == 1)
+		{
+			status2 = 0;
+			document.getElementById("status").innerHTML = "<span class='idle'>Idle</span>";
+			document.getElementById("status2").innerHTML = "Pause";
+			doSimpleXMLHttpRequest("api?mode=resume&apikey="+session);
+		}
+		else
+		{
+			status2 = 1;
+			document.getElementById("status").innerHTML = "<span class='paused'>Paused</span>";
+			document.getElementById("speed").innerHTML = "0";
+			document.getElementById("status2").innerHTML = "Resume";
+			doSimpleXMLHttpRequest("api?mode=pause&apikey="+session);
+
+		}
+	}
+
+	function deletequeueitem(elem, session_val)
+	{
+    //deletes an item from the queue - passed variable is the id (uid) of the queue item to delete(and also the id of the queue element)
+        val1 = document.getElementById(elem).innerHTML;
+        val1="";
+
+		d = doSimpleXMLHttpRequest('queue/delete', {uid: elem, dummy: Math.random(), session: session_val});
+		d.addCallback(replaceright);
+		d.addErrback(handleServerError);
+	}
+
+	function deletehistoryitem(elem, pnode, session)
+	{
+    //deletes an item from the history - passed variable is the id (uid) of the history item to delete(and also the id of the history element)
+        val1 = document.getElementById(elem).innerHTML;
+        val1="";
+		d = doSimpleXMLHttpRequest('history/delete', {job: elem, dummy: Math.random(), session: session});
+		if (pnode == 'Right_bottom')d.addCallback(replaceright2);
+        else d.addCallback(replaceright);
+		d.addErrback(handleServerError);
+	}
+
+    function handleServerError(){}
+
+    function killTimer(){
+        clearTimeout (timerId2);
+    }
+    function restartTimer(time){
+        killTimer();
+        timerId2 = setTimeout("startTimer()", time*1000);
+    }
+
+    function startTimer(url, dual){
+        killTimer();
+        if (url) gUrl = url
+        else url = gUrl
+        if (dual) gDual = dual
+        else dual = gDual
+        timer="lr(\'"+url+"\', '', 1, "+dual+", 'Right')";
+        timerId2 = setTimeout(timer, RefreshTime*1000);
+
+    }
+
+    function rssUrlEncode(url, uri ,cat ){
+        var enc_uri = urlEncode(uri)
+        location = url+"?uri="+enc_uri+"&cat="+cat+"&this_uri="+enc_uri
+    }
+
+	function lr(url, extra, refresh, dual, pnode)
+	{
+    //submits an ajax request and loads the retrieved data into the div called "Right". Can queue itself up to repeat the action based on the refresh rate
+		if (dual!=-1)
+        {
+            gDual = dual;
+            if (dual!=2 ) {
+                document.getElementById('Container').style.width = "90%";
+                document.getElementById('Right').style.width = "100%";
+                document.getElementById('Right_bottom').style.width = "100%";
+            }
+            else {
+                document.getElementById('Container').style.width = "99%";
+                document.getElementById('Right').style.width = "48%";
+                document.getElementById('Right_bottom').style.width = "41%";
+            }
+        }
+        append = '?dummy='+Math.random();
+        if (extra){
+            append = append+'&'+extra;
+        }
+		var res = doSimpleXMLHttpRequest(url+append);
+	    res.addCallback(function (res)
+	    {
+          if (timerId2 && refresh>=0 && pnode != 'Right_bottom') killTimer()
+	      if (pnode != 'Right_bottom') document.getElementById('Right').innerHTML = res.responseText;
+          else document.getElementById('Right_bottom').innerHTML = res.responseText;
+          if (dual==0) {
+              document.getElementById('Right_bottom').innerHTML = "";
+              clearTimeout ( timerId3 );
+          }
+
+		  if (refresh>0 && RefreshTime>0) {
+          startTimer(url, dual);
+          }
+	    });
+		res.addErrback(handleServerError);
+	}
+	function lrb(url, refresh)
+	{
+    //killTimer()
+    //similar to lr() but loads the response in the right_bottom container
+		if (timerId3) clearTimeout ( timerId3 );
+		var res = doSimpleXMLHttpRequest(url+'?dummy='+Math.random());
+	    res.addCallback(function (res)
+	    {
+	      document.getElementById('Right_bottom').innerHTML = res.responseText;
+
+		  if (refresh && RefreshTime>0) timerId3 = setTimeout("lrb(\'"+url+"\', 1);", RefreshTime*1000)
+	    });
+		res.addErrback(handleServerError);
+	}
+
+
+	function lrdual(url1, url2, refresh, pnode)
+	{
+    killTimer()
+    //used when something needs to be submitted in the background, and another page loaded (usually refreshing the current page)
+        var d = doSimpleXMLHttpRequest(url1);
+		d.addCallback(function (d)
+        {
+        if (pnode == 'Right') lr(url2, '', refresh, gDual);//if link is in right_bottom needs to be lrb(
+        else lrb(url2, refresh, gDual)
+        });
+
+	}
+
+	function changequeuedetails(page, extra)
+	{
+        append = '&dummy='+Math.random();
+        if (extra){
+            append = append+'&'+extra;
+        }
+        url = page+append;
+		d = doSimpleXMLHttpRequest(url);
+		d.addCallback(replaceright);
+		d.addErrback(handleServerError);
+	}
+
+
+
+	function testemail()
+	{
+		d = doSimpleXMLHttpRequest('connections/testmail', {session: session});
+		d.addCallback(function (d)
+        {
+        alert("E-Mail Sent");
+        });
+		d.addErrback(handleServerError);
+	}
+
+	function getBookmarks()
+	{
+		d = doSimpleXMLHttpRequest('config/newzbin/getBookmarks', {session: session});
+	}
+
+	function changequeueoptions(page, session)
+	{
+		d = doSimpleXMLHttpRequest('queue/'+page, {session: session});
+	}
+
+	function reloadqueue()
+	{
+		var res = doXHR('queue',
+	    {
+		    method:'POST',
+            sendContent:'?dummy='+Math.random()
+
+	    });
+		res.addCallback(replaceright);
+		res.addErrback(handleServerError);
+	}
+	//based from Mochikit documentation - finds all the form values for an element and returns formatted query string
+	function getFormValues(element)
+	{
+
+	    kv = MochiKit.DOM.formContents(element);
+	    names = kv[0];
+	    values = kv[1];
+
+		kvstr = queryString(kv)
+	    return kvstr;
+	}
+
+    function toggle_verbosity(nzo_id, extra)
+    {
+        append = '&dummy='+Math.random();
+        if (extra) {
+            append = append+extra;
+        }
+        url = 'queue/tog_uid_verbose?uid='+nzo_id+append;
+		var res = doSimpleXMLHttpRequest(url);
+	    res.addCallback(function (res)
+	    {
+          document.getElementById('Right').innerHTML = res.responseText;
+        })
+    }
+
+
+	//a function for submitting forms, grabs all the form info the the form defined by saveelement. Can also execute an additional page get after the post
+	function submitconfig(extra, saveelement, element, url2, refresh)
+	{
+        append = '?dummy='+Math.random();
+		var values = [];
+		var elementt;
+		if (element) elementt = document.getElementById(element);
+		values = getFormValues(elementt);
+
+		var url = ''+extra;
+		var d = doXHR(url+append,
+	    {
+		    method:'POST',
+		    sendContent:values,
+		    headers: {"Content-Type":"application/x-www-form-urlencoded"}
+
+	    });
+		if (saveelement) document.getElementById(saveelement).innerHTML = "<img src='static/images/ajax-loader.gif' />";
+	    d.addCallback(function (result)
+	    {
+	      if (saveelement) document.getElementById(saveelement).innerHTML = "Saved";
+          if(url2 == "1") {replaceright(result);}
+          else if(url2 == "2") {replaceright2(result);}
+		  else if(url2) {lr(url2,'',refresh);}
+	    });
+
+
+
+	    d.addErrback( function (result)
+	    {
+	      //if (saveelement) document.getElementById(saveelement).innerHTML = "Error";
+	    });
+
+	}
+
+
+
+	var replaceright  = function (res)
+	{
+		document.getElementById('Right').innerHTML = res.responseText;
+	}
+
+	var replaceright2  = function (res)
+	{
+		document.getElementById('Right_bottom').innerHTML = res.responseText;
+	}
+
+    function generateAPIKey()
+    {
+        session = document.getElementById('apikey').value;
+        url = "api?mode=config&name=set_apikey&apikey="+session;
+		var res = doSimpleXMLHttpRequest(url);
+	    res.addCallback(function (res)
+	    {
+            session = res.responseText;
+            document.getElementById('apikey').value = res.responseText;
+            document.getElementById('addNewSession1').value = res.responseText;
+            document.getElementById('addNewSession2').value = res.responseText;
+        })
+    }
+
+    function shutdown()
+    {
+        window.location='shutdown?session='+session;
+    }
+
+
+
+
+//loads up the json for the queue page and changes the values in the document
+function loadingJSON(){
+	if (RefreshTime>0) {
+	clearTimeout ( jsontimeout );
+	jsontimeout = setTimeout("loadingJSON();", RefreshTime*1000);
+	}
+	var url = "api?mode=qstatus&output=json&dummy="+Math.random()+"&apikey="+session;
+	var d = loadJSONDoc(url);
+	var gotMetadata = function (info)
+	{
+		//alert(info["kbpersec"]);
+
+		speed = info["kbpersec"].toFixed(0);
+		var paused = info["paused"];
+		if (paused==true) speed = 0;
+
+		if (paused == true)
+		{
+			document.getElementById("status").innerHTML = "<span class='paused'>Paused</span>";
+            document.title = "SABnzbd+ | Paused";
+            document.getElementById("status2").innerHTML = "Resume";
+            status2 = 1
+						//alert("paused");
+		} else if 	(speed>0)
+		{
+			document.getElementById("status").innerHTML = "<span class='downloading'>Downloading</span>";
+    		totalTimeRemain = info["timeleft"];
+            dltitle = "SABnzbd+ | "+totalTimeRemain+" | "+speed+"kB/s";
+            document.title = dltitle;
+            document.getElementById("status2").innerHTML = "Pause";
+            status2 = 0
+						//alert("down");
+		} else {
+			document.getElementById("status").innerHTML = "<span class='idle'>Idle</span>";
+            document.title = "SABnzbd+ | Idle";
+            document.getElementById("status2").innerHTML = "Pause";
+            status2 = 0
+						//alert("idle");
+		}
+
+		document.getElementById("speed").innerHTML = speed;
+		document.getElementById("mbleft").innerHTML = info["mbleft"].toFixed(2);
+		document.getElementById("mbtotal").innerHTML = info["mb"].toFixed(2);
+        document.getElementById("ds1").innerHTML = info["diskspace1"].toFixed(2);
+		document.getElementById("ds2").innerHTML = info["diskspace2"].toFixed(2);
+        //var perc1 = 1 - (info["jobs"][0]["mbleft"].toFixed(2) / info["jobs"][0]["mb"].toFixed(2))
+        //alert(info["jobs"][0]);
+	   	if (info["jobs"]!="") document.getElementById("downloadinfo").innerHTML = "Downloading: "+info["jobs"][0]["filename"];
+        else document.getElementById("downloadinfo").innerHTML = "";
+		document.getElementById("have_warnings").innerHTML = info["have_warnings"];
+
+
+	};
+	var metadataFetchFailed = function (err) {
+	  //alert("The metadata for MochiKit.Async could not be fetched :(");
+	};
+	d.addCallbacks(gotMetadata, metadataFetchFailed);
+}
+
+
+
+
+//based on plotkit docummentation for dynamic tables
+   //var dataTable = null;
+   var layout = null;
+   var renderer = null;
+   var options = null;
+
+   function initDynamicTable() {
+       //dataTable = data;
+       <!--#if $color_scheme  == 'black.css'#-->
+       options = PlotKit.Base.officeBlack();
+       <!--#else #-->
+       options = PlotKit.Base.officeBlue();
+       <!--#end if #-->
+       layout = new Layout("line", options);
+       renderer = new SweetCanvasRenderer('graph', layout, options);
+	   //alert("hi");
+   }
+
+   function chartReload(data) {
+
+
+       <!--#if $color_scheme  == 'black.css'#-->
+       var colorScheme = "Black";
+       <!--#else #-->
+       var colorScheme = "Blue";
+       <!--#end if #-->
+        // setup layout options
+        var themeName = "office" + colorScheme;
+        var theme = PlotKit.Base[themeName]();
+        MochiKit.Base.update(options, theme);
+
+        layout.style = "line";
+        MochiKit.Base.update(layout.options, options);
+        MochiKit.Base.update(renderer.options, options);
+
+        //layout.addDataset("data", values);
+		layout.addDataset("sqrt", [[0, data[0]], [1, data[1]], [2, data[2]], [3, data[3]], [4, data[4]], [5, data[5]], [6, data[6]], [7, data[7]], [8, data[8]],[9, data[9]],[10, data[10]], [11, data[11]], [12, data[12]], [13, data[13]], [14, data[14]], [15, data[15]], [16, data[16]], [17, data[17]], [18, data[18]],[19, data[19]]]);
+
+        // update
+        layout.evaluate();
+        renderer.clear();
+        renderer.render();
+
+   }
+
+
+</script>
+
+
+</head>
+<body>
+	<div id="Container">
+		<div id="Header">
+			<p class="status">
+				Status: <span id="status">$status</span><br />
+				Speed: <span id="speed">$kbpersecrnd</span> kB/s<br />
+				Queue: <span id="mbleft">$mbleft</span>/<span id="mbtotal">$mb</span>
+			</p>
+		<div id="logo">
+			<a href=""><img id="title" src="static/sabnzbd_small4.png" alt="sabnzbd+" /></a>
+			<h2>The automatic usenet download tool</h2>
+		</div>
+            <!-- <div id="divchart"><canvas id="graph" height="70" width="700"></canvas></div> -->
+
+		</div>
+		<div id="Content">
+			<div id="Left">
+				<ul id="menu">
+					<li><a class="current" href="">Home</a></li>
+					<li><a href="#queue" onClick="lr('queue/', '', 1, 0);">Queue</a></li>
+					<li><a href="#history" onClick="lr('history/','', 1, 0);">History</a></li>
+                    <li><a href="#dv1" onClick="lr('queue/','', 1, 1);lrb('history/',1);">DualView1</a></li>
+                    <li><a href="#dv2" onClick="lr('queue/','', 1, 2);lrb('history/',1);">DualView2</a></li>
+					<li><a href="#config" onClick="lr('config/','', 0, 0);">Config</a></li>
+					<ul class="secondul">
+						<li><a class="config" href="#config-general" onClick="lr('config/general/','', 0, 0);">General</a></li>
+						<li><a class="config" href="#config-directories" onClick="lr('config/directories/','', 0, 0);">Folders</a> </li>
+						<li><a class="config" href="#config-switches" onClick="lr('config/switches/','', 0, 0);">Switches</a> </li>
+						<li><a class="config" href="#config-server" onClick="lr('config/server/','', 0, 0);">Servers</a> </li>
+						<li><a class="config" href="#config-scheduling" onClick="lr('config/scheduling/','', 0, 0);">Scheduling</a> </li>
+						<li><a class="config" href="#config-rss" onClick="lr('config/rss/','', 0, 0);">RSS</a> </li>
+						<li><a class="config" href="#config-email" onClick="lr('config/email/','', 0, 0);">Email</a></li>
+						<li><a class="config" href="#config-newzbin" onClick="lr('config/newzbin/', '', 0, 0);">Newzbin</a></li>
+                        <li><a class="config" href="#config-categories" onClick="lr('config/categories/', '', 0, 0);">Categories</a></li>
+					</ul>
+					<li><a href="#connections" onClick="lr('connections/','', 1, 0);">Connections</a></li>
+    				<li><a href="#connections" onClick="lr('connections/','', 1, 0);">Warnings(<span id="have_warnings">$have_warnings</span>)</a></li>
+					<li><a class="bold" id="status2" onClick="toggle()">$statusstr2</a></li>
+					<li><a style="text-decoration:underline;cursor:pointer;" onClick="if(confirm('Are you sure you want to shut down the SABnzbd application?')){shutdown();}">Shutdown</a></li>
+                    <br/>
+        			<li><a href="$helpuri" target="_blank">Wiki</a></li>
+        			<li><a href="http://forums.sabnzbd.org" target="_blank">Forums</a></li>
+                    <li><a href="http://embed.mibbit.com/?server=irc.synirc.net&channel=%23sabnzbd&parseLinks=true&chatOutputShowTimes=true" target="_blank">IRC</a></li>
+				</ul>
+				<!--<input type="checkbox" name="enable_speedlimit" />-->
+				<span class="small">Speedlimit: </span><input type="text" id="speedbox" value="$speedlimit" onChange="javascript:doSimpleXMLHttpRequest('api?apikey=$session&mode=config&name=set_speedlimit&value='+this.value);">
+				<br /><br /><center>
+				Incomplete<br />
+				<span class="small"><span id="ds1">${diskspace1}</span>GB / ${diskspacetotal1}GB</span><br />
+				Complete<br />
+				<span class="small"><span id="ds2">${diskspace2}</span>GB / ${diskspacetotal2}GB</span>
+				</center>
+
+			</div>
+			<div id="RightContainer">
+                <div id="Right">
+
+
+    				<h3>Add new downloads</h3>
+                    <br/>
+
+                    <div class="EntryBlock">
+                        <form action="addID" class="cmxform"  method="get">
+                        <fieldset class="EntryFieldSet">
+                            <legend>Add <!--#if $varExists('newzbinDetails') then "Report-ID / " else ""#-->URL</legend>
+                            <hr />
+                            <input type="text" style="width:218px;"  name="id">
+                            <!--#if $cat_list#-->
+                                <select name="cat" class="addnewselect" >
+                                    <!--#for $ct in $cat_list#-->
+                                        <option value="$ct">$ct</option>
+                                    <!--#end for#-->
+                                </select class="addnewselect" >
+                            <!--#end if#-->
+                            <select name="pp" class="scriptselect" >
+                            <option value="-1" <!--#if $cat_list then "selected" else ""#-->>Default</option>
+                            <option value="0">None</option>
+                            <option value="1">+Repair</option>
+                            <option value="2">+Unpack</option>
+                            <option value="3" <!--#if $cat_list then "" else "selected"#-->>+Delete</option>
+                            </select>
+                            <!--#if $script_list#-->
+                                <select name="script" class="scriptselect" >
+                                <!--#for $sc in $script_list#-->
+                                    <option value="$sc">$sc</option>
+                                <!--#end for#-->
+                                </select>
+                            <!--#end if#-->
+                            <input type="hidden" value="$session" id="addNewSession1" name="session">
+                            <input type="submit" class="submitindent2"  value="Add">
+                        </fieldset>
+                        </form>
+                    </div>
+                    <div class="EntryBlock2">
+                        <form action="addFile" class="cmxform"  method="post" enctype="multipart/form-data">
+                        <fieldset class="EntryFieldSet">
+                            <legend>Add File</legend>
+                            <hr />
+                            <input type="file" style="width:221px" name="nzbfile">
+                            <!--#if $cat_list#-->
+                                <select name="cat" class="addnewselect" >
+                                    <!--#for $ct in $cat_list#-->
+                                        <option value="$ct">$ct</option>
+                                    <!--#end for#-->
+                                </select>
+                            <!--#end if#-->
+                            <select name="pp" class="scriptselect" >
+                            <option value="-1" <!--#if $cat_list then "selected" else ""#-->>Default</option>
+                            <option value="0">None</option>
+                            <option value="1">+Repair</option>
+                            <option value="2">+Unpack</option>
+                            <option value="3" <!--#if $cat_list then "" else "selected"#-->>+Delete</option>
+                            </select>
+                            <!--#if $script_list#-->
+                                <select name="script" class="scriptselect" >
+                                <!--#for $sc in $script_list#-->
+                                    <option value="$sc">$sc</option>
+                                <!--#end for#-->
+                                </select>
+                            <!--#end if#-->
+                            <input type="hidden" value="$session" id="addNewSession2" name="session">
+                            <input type="submit" class="submitindent2"  value="Add">
+                        </fieldset>
+                        </form>
+                    </div>
+
+    				<!--#if $warning#-->
+    				<h2>WARNING</h2>
+    				<b>$warning</b><br/>
+    				<!--#end if#-->
+    				<!--#if $new_release#-->
+    			    <b>New release $new_release available at <a href="$new_rel_url" target="_blank">SF.net</a></b><br/>
+    				<!--#end if#-->
+
+
+
+
+    			</div>
+
+                <div id="Right_bottom">
+    			</div>
+    		</div>
+		</div>
+		<div id="Footer">
+			<div id="divchart"><canvas id="graph" height="100" width="700"></canvas></div>
+			<span id="downloadinfo"></span><br /><br />
+			<p id="versions">Refresh Rate: <select id="refreshrate" onchange="javascript:applyrefresh(this.options[this.selectedIndex].value)">
+				<option value="2" >2 seconds</option>
+				<option value="3" >3 seconds</option>
+				<option value="5" selected="selected">5 seconds</option>
+				<option value="10" >10 seconds</option>
+				<option value="15" >15 seconds</option>
+				<option value="30" >30 seconds</option>
+				<option value="60" >1 minute</option>
+				<option value="180" >3 minutes</option>
+				<option value="300" >5 minutes</option>
+				<option value="0" >None</option>
+			</select>
+            <br />sabnzbd version: $version | smpl version: 1.2</a></p>
+		</div>
+	</div>
+</body>
+</html>

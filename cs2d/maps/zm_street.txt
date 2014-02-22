@@ -1,0 +1,14 @@
+Street - Zombie
+
+official CS2D Map by DC
+www.unrealsoftware.de
+
+
+Survivors: Try to survive!
+
+Zombies: Infest all survivors before the time elapses.
+
+Other Notes:
+- Play this map in Zombies!-mode
+- Survivors can buy at the beginning of the round
+- There are weapons, ammo and healthpacks on this map

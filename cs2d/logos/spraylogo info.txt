@@ -1,0 +1,9 @@
+Please note the following for custom sprays:
+
+Each spraylogo has to have a size of 32x32 pixels!
+BMP is the recommended format for spraylogos.
+You should only use grayscale images for logos!
+
+WARNING: SPRAYLOGOS WHICH ARE BIGGER OR SMALLER THAN
+32X32 PIXELS MIGHT CAUSE ERRORS! DO NOT USE SUCH
+SPRAYLOGOS!

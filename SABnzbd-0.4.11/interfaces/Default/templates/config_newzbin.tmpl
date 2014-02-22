@@ -1,0 +1,62 @@
+<!--#set global $topmenu="config"#-->
+<!--#set global $statpath="../.."#-->
+<!--#set global $helpsubject="Configure+Newzbin"#-->
+<!--#include $webdir + "/inc_top.tmpl"#-->
+
+<!--#set global $submenu="newzbin"#-->
+<!--#include $webdir + "/inc_cmenu.tmpl"#-->
+
+<h2>Newzbin settings</h2>
+If you have an account at www.newzbin.com, you can enter your account info here.<br/>
+This will unlock extra functionality.<br/>
+<br/>
+<form action="saveNewzbin" method="post">
+<div class="EntryBlock">
+<fieldset class="EntryFieldSet">
+<legend>Account info</legend>
+<strong>Username:</strong><br>
+Set your username here.<br>
+<input type="text" name="username_newzbin" value="$username_newzbin">
+<br>
+<br>
+<strong>Password:</strong><br>
+Set your password here.<br>
+<input type="password" name="password_newzbin" value="$password_newzbin">
+</fieldset>
+</div>
+
+<div class="EntryBlock">
+<fieldset class="EntryFieldSet">
+<legend>Bookmark processing</legend>
+<label><input type="checkbox" name="newzbin_bookmarks" value="1" <!--#if $newzbin_bookmarks > 0 then "checked=1" else ""#--> <strong>Auto fetch bookmarks:</strong></label><br>
+Automatically get jobs from your bookmarks?<br>
+<a href="getBookmarks?session=$session">Get bookmarks now</a>
+<br>
+<!--#if $bookmarks_list#-->
+    <a href="hideBookmarks?session=$session">Hide processed bookmarks</a>
+<!--#else#-->
+    <a href="showBookmarks?session=$session">Show processed bookmarks</a>
+<!--#end if#-->
+<br/>
+<br/>
+<label><input type="checkbox" name="newzbin_unbookmark" value="1" <!--#if $newzbin_unbookmark > 0 then "checked=1" else ""#--> /> <strong>Un-bookmark if download complete:</strong><label><br>
+Remove from bookmark list, when download is complete.<br>
+<br/>
+<strong>Checking interval:</strong><br>
+In minutes (at least 15 min).<br>
+<input type="text" name="bookmark_rate" value="$bookmark_rate">
+</fieldset>
+</div>
+<!--#if $bookmarks_list#-->
+    <fieldset class="EntryFieldSet">
+    <legend>Processed bookmarks</legend>
+    <!--#for $msgid in $bookmarks_list#-->
+        <a href="https://www.newzbin.com/browse/post/$msgid/" target="_blank">$msgid</a>&nbsp;
+    <!--#end for#-->
+    </fieldset>
+<!--#end if#-->
+<input type="hidden" name="session" value="$session">
+<p><input type="submit" value="Save Changes"></p>
+</form>
+
+<!--#include $webdir + "/inc_bottom.tmpl"#-->

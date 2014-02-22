@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+	
+	<title>SABnzbd+ $version - Queued: $mbleft MB</title>
+	<link rel="shortcut icon" type="image/ico" href="../../static/images/plush-default/sabnzbdplus.ico"/>
+	
+	<script type="text/javascript" src="../../static/javascripts/jquery.js?$version"></script>
+	<script type="text/javascript" src="../../static/javascripts/jquery.corner.js?$version"></script>
+	
+	<link rel="stylesheet" type="text/css" href="../../static/stylesheets/plush-default.css?$version"/>
+	<!--#if $color_scheme and $color_scheme != "plush-default.css" and $color_scheme != "plush_default.css" and $color_scheme != "default.css" and $color_scheme != "modern.css" and $color_scheme != "Modern.css"#-->
+	<link rel="stylesheet" type="text/css" href="../../static/stylesheets/colorschemes/$color_scheme?$version"/>
+	<!--#end if#-->
+	
+	<style>
+	<!--
+		body {background: #ddd;}
+	-->
+	</style>
+</head>
+<body>
+	
+	<div id="config_go_back"><div><a href="../../">go&nbsp;back</a></div></div>
+	
+	<div id="config_nav">
+		<ul>
+			<li><a class="config_menu" id="config_nav_connections" href="../../connections">Connections</a></li>
+			<li><a class="config_menu" id="config_nav_general" href="../general">General</a></li>
+			<li><a class="config_menu" id="config_nav_directories" href="../directories">Folders</a></li>
+			<li><a class="config_menu" id="config_nav_switches" href="../switches">Switches</a></li>
+			<li><a class="config_menu" id="config_nav_server" href="../server">Servers</a></li>
+			<li><a class="config_menu" id="config_nav_categories" href="../categories">Categories</a></li>
+			<li><a class="config_menu nav_active" id="config_nav_scheduling" href="../scheduling">Scheduling</a></li>
+			<li><a class="config_menu" id="config_nav_rss" href="../rss">RSS</a></li>
+			<li><a class="config_menu" id="config_nav_email" href="../email">Email</a></li>
+			<li><a class="config_menu" id="config_nav_newzbin" href="../newzbin">Newzbin</a></li>
+		</ul>
+	</div>
+	
+	<div id="config_container" class="config_margin">
+		<div id="config_content">
+			
+<!--************************************
+			PAGE CONTENT IS BELOW
+	************************************ -->
+			
+			<div class="EntryBlock">
+			<form action="addSchedule" method="post">
+			<fieldset class="EntryFieldSet">
+				
+				<legend id="configbox_add_schedule">Add&nbsp;Schedule</legend>
+<%import time
+t = time.localtime()
+hour = t[3]
+if hour != 23:
+    hour += 1
+else:
+    hour = 0 %>
+
+				<table>
+					<tr><td align=right>
+						<div class="sucker">Hour&nbsp;:&nbsp;Minute:</div>
+					</td><td>
+						<select name="hour">
+						<!--#for $i in range(24)#-->
+							<option value="$i" <!--#if hour == i then "selected=1" else ""#-->> $i</option>
+						<!--#end for#-->
+						</select>&nbsp;:&nbsp;<select name="minute">
+						<!--#for $i in range(60)#-->
+							<option value="$i">$i</option>
+						<!--#end for#-->
+						</select>
+					</td></tr>
+					
+					<tr><td align=right>
+						<div class="sucker">Frequency:</div>
+					</td><td>
+						<select name="dayofweek">
+							<option value="*" selected>Daily</option>
+							<option value="1">Mondays</option>
+							<option value="2">Tuesdays</option>
+							<option value="3">Wednesdays</option>
+							<option value="4">Thursdays</option>
+							<option value="5">Fridays</option>
+							<option value="6">Saturdays</option>
+							<option value="7">Sundays</option>
+						</select>
+					</td></tr>
+					
+					<tr><td align=right>
+						<div class="sucker">Action:</div>
+					</td><td>
+						<select name="action">
+							<option value="resume">Resume</option>
+							<option value="pause">Pause</option>
+							<option value="shutdown">Shutdown SAB</option>
+							<option value="speedlimit">Speed Limit</option>
+						</select>
+					</td></tr>
+					
+					<tr><td align=right>
+						<div class="sucker">Arguments:</div>
+					</td><td>
+						<input type="text" size="20" name="arguments" value=""/>
+					</td></tr>
+					
+					<tr><td>
+					</td><td>
+						<br/><input type="submit" value="&oplus; Add Schedule"/>
+					</td></tr>
+					
+				</table>
+				
+				
+				
+			</fieldset>
+			<input type="hidden" name="session" value="$session">
+			</form>
+			</div>
+			
+			<!--#if $schedlines#-->
+			<div class="EntryBlock">
+			<fieldset class="EntryFieldSet">
+			<legend id="configbox_current_schedules">Current&nbsp;Schedules</legend>
+			<!--#set $schednum = 0#-->
+			<!--#for $line in $schedlines#-->
+			<form action="delSchedule" method="post">
+				<!--#set $schednum = $schednum+1#-->
+				<input type="hidden" name="line" value="$line"/>
+<% 
+m, h, day, action = line.split(' ', 3)
+if len(m) == 1:
+    m = '0%s' % m
+if day == "*":
+    day="Daily"
+elif day == "1":
+    day='Monday'
+elif day == "2":
+    day='Tuesday'    
+elif day == "3":
+    day='Wednesday'    
+elif day == "4":
+    day='Thursday' 
+elif day == "5":
+    day='Friday'
+elif day == "6":
+    day='Saturday' 
+elif day == "7":
+    day='Sunday'    
+%>
+				<input type="submit" value="X"/>&nbsp;&sdot;<u>Schedule&nbsp;#$schednum:</u>&nbsp;<strong>$h:$m</strong>&nbsp;&sdot;&nbsp;$day&nbsp;&sdot;&nbsp;$action
+				
+			<input type="hidden" name="session" value="$session">
+			</form><br />
+			<!--#end for#-->
+			</fieldset>
+			</div>
+			<!--#end if#-->
+			
+<!--************************************
+			PAGE CONTENT IS ABOVE
+	************************************ -->
+			
+		</div>
+	</div>
+	
+	<div class="left_links config_margin">
+		<a id="help" target="_blank" href="$helpuri/Configure+Scheduling">Scheduling Help</a>
+	</div>
+	
+	<script language="javascript">
+		\$('.config_menu').corner("round tl bl");
+		\$('#config_container').corner("round");
+		\$('#help').corner("round");
+	</script>
+	
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+
+	<title>SABnzbd+ $version - Queued: $mbleft MB</title>
+	<link rel="shortcut icon" type="image/ico" href="../../static/images/plush-default/sabnzbdplus.ico"/>
+
+	<script type="text/javascript" src="../../static/javascripts/jquery.js?$version"></script>
+	<script type="text/javascript" src="../../static/javascripts/jquery.corner.js?$version"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../static/stylesheets/plush-default.css?$version"/>
+	<!--#if $color_scheme and $color_scheme != "plush-default.css" and $color_scheme != "plush_default.css" and $color_scheme != "default.css" and $color_scheme != "modern.css" and $color_scheme != "Modern.css"#-->
+	<link rel="stylesheet" type="text/css" href="../../static/stylesheets/colorschemes/$color_scheme?$version"/>
+	<!--#end if#-->
+
+	<script type="text/javascript">
+	    function generateAPIKey()
+	    {
+			jQuery.ajax({
+				type: "POST",
+				url: "../../api",
+				data: "mode=config&name=set_apikey&apikey="+jQuery('#apikey').val(),
+				success: function(msg){
+					jQuery('#apikey').val(msg);
+					jQuery('#hiddenSession').val(msg);
+				}
+			});
+	    }
+	</script>
+
+	<style>
+	<!--
+		body {background: #ddd;}
+	-->
+	</style>
+
+</head>
+<body>
+
+	<div id="config_go_back"><div><a href="../../">go&nbsp;back</a></div></div>
+
+	<div id="config_nav">
+		<ul>
+			<li><a class="config_menu" id="config_nav_connections" href="../../connections">Connections</a></li>
+			<li><a class="config_menu nav_active" id="config_nav_general" href="../general">General</a></li>
+			<li><a class="config_menu" id="config_nav_directories" href="../directories">Folders</a></li>
+			<li><a class="config_menu" id="config_nav_switches" href="../switches">Switches</a></li>
+			<li><a class="config_menu" id="config_nav_server" href="../server">Servers</a></li>
+			<li><a class="config_menu" id="config_nav_categories" href="../categories">Categories</a></li>
+			<li><a class="config_menu" id="config_nav_scheduling" href="../scheduling">Scheduling</a></li>
+			<li><a class="config_menu" id="config_nav_rss" href="../rss">RSS</a></li>
+			<li><a class="config_menu" id="config_nav_email" href="../email">Email</a></li>
+			<li><a class="config_menu" id="config_nav_newzbin" href="../newzbin">Newzbin</a></li>
+		</ul>
+	</div>
+
+	<div id="config_container" class="config_margin">
+		<div id="config_content">
+
+<!--************************************
+			PAGE CONTENT IS BELOW
+	************************************ -->
+
+			<div align=center>
+				<small><i>Config File:</i></small> <font color=blue>$configfn</font>
+			</div>
+
+			<form action="saveGeneral" method="post" name="fullform">
+			<div class="EntryBlock">
+			<fieldset class="EntryFieldSet">
+
+				<legend id="configbox_web_server">Web&nbsp;Server</legend>
+
+				<font color="white" style="background-color:red">&nbsp;Changes require manual SABnzbd restart!&nbsp;</font>
+
+				<br/><br/>
+				<table cellpadding=2>
+				<tr><td>
+				<strong>Host:</strong><br/>
+				<small>Host SABnzbd should listen on.</small><br/>
+				<input type="text" name="host" value="$host"/>
+
+				</td><td>
+				<strong>Port:</strong><br/>
+				<small>Port SABnzbd should listen on.</small><br/>
+				<input type="text" name="port" size=8 value="$port"/>
+
+				</td></tr><tr><td colspan=2><hr/></td></tr><tr><td>
+				<strong>Web Username:</strong><br/>
+				<small>Authentication Username.</small><br/>
+				<input type="text" name="web_username" value="$username"/>
+
+				</td><td>
+				<strong>Web Password:</strong><br/>
+				<small>Authentication Password.</small><br/>
+				<input type="password" name="web_password" value="$password"/>
+				</td></tr>
+				</td></tr><tr><td colspan=2><hr/></td></tr><tr><td>
+
+				<strong>Web Interface:</strong><br/>
+				<small>Choose a skin.</small><br/>
+				<select name="web_dir">
+				<!--#for $webline in $web_list#-->
+				<!--#if $webline.lower() == $web_dir.lower()#-->
+					<option value="$webline" selected>$webline</option>
+				<!--#else#-->
+					<option value="$webline">$webline</option>
+				<!--#end if#-->
+				<!--#end for#-->
+				</select>
+
+				</td><td>
+				<strong>Secondary Web Interface:</strong><br/>
+				<small>Activate a secondary skin.</small><br/>
+				<select name="web_dir2">
+				<!--#for $webline in $web_list2#-->
+				<!--#if $webline.lower() == $web_dir2.lower()#-->
+					<option value="$webline" selected>$webline</option>
+				<!--#else#-->
+					<option value="$webline">$webline</option>
+				<!--#end if#-->
+				<!--#end for#-->
+				</select>
+				</td></tr>
+				</table>
+
+				<!--#if $web_colors#-->
+				<br/>
+				<strong>(Active) Web Interface Schema:</strong><br/>
+				<small>Choose a color scheme for currently loaded skin.</small><br/>
+				<select name="web_color">
+				<!--#for $webline in $web_colors#-->
+				<!--#if $webline.lower() == $web_color.lower()#-->
+					<option value="$webline" selected>$webline</option>
+				<!--#else if not $web_color.lower() and $webline.lower() == 'plush-default'#-->
+					<option value="$webline" selected>$webline</option>
+				<!--#else#-->
+					<option value="$webline">$webline</option>
+				<!--#end if#-->
+				<!--#end for#-->
+				</select>
+				<!--#end if#-->
+
+				<br/><br/>
+				<strong>API Key:</strong><br />
+				<input type="text" style="width:250px;border:none;" onclick="this.select()" id="apikey" value="$session">
+				<input type="button" style="float:none;display:inline;" size="40" value="Generate New Key" onclick="javascript:generateAPIKey()">
+				<br/><br/>
+                <strong>Disable API key:</strong>
+				<input type="checkbox" name="disable_key" value="1" <!--#if $disable_key > 0 then "checked=1" else ""#--> />
+				<small>Do not require the API key. <a href="$helpuri/cross-site-vulnerability/" target="_blank">USE AT YOUR OWN RISK!</a></small>
+
+
+			</fieldset>
+			</div>
+
+			<div class="EntryBlock">
+			<fieldset class="EntryFieldSet">
+
+				<legend id="configbox_tuning">Tuning</legend>
+				<strong>Queue Auto-Refresh Interval:</strong><br/>
+				<small>Not used in Plush!
+				<br/>Refresh interval of the queue web-interface page.</small><br/>
+				<input type="text" name="refresh_rate" value="$refresh_rate" size=8 /><small>&nbsp;(seconds;&nbsp;0&nbsp;=&nbsp;none)</small>
+
+				<br/><br/>
+				<strong>RSS Checking Interval:</strong><br/>
+				<small>In minutes.</small><br/>
+				<input type="text" name="rss_rate" value="$rss_rate" size=8 /><small>&nbsp;(at&nbsp;least&nbsp;15&nbsp;min)</small>
+
+				<br/><br/>
+				<strong>Download Speed Limit:</strong><br/>
+				<small>Download speed limit in kilobytes per second.</small><br/>
+				<input type="text" name="bandwith_limit" value="$bandwith_limit" size=8 /><small>&nbsp;(kB/s)</small>
+
+				<br/><br/>
+				<strong>Article Cache Limit:</strong><br/>
+				<small>Cache articles in memory (reduce disk access).</small><br/>
+				<input type="text" name="cache_limitstr" value="$cache_limitstr" size=8 />
+
+				<br/><br/>
+				<strong>Cleanup List:</strong><br/>
+				<small>List of file extensions that should be deleted after download.<br/>
+				For example: ".nfo," or ".nfo, .sfv"</small><br/>
+				<input type="text" name="cleanup_list" value="$cleanup_list" size=40 />
+
+			</fieldset>
+			</div>
+
+<!--************************************
+			PAGE CONTENT IS ABOVE
+	************************************ -->
+
+		</div>
+	</div>
+
+	<div class="left_links config_margin">
+		<a id="help" target="_blank" href="$helpuri/Configure+General">General Config Help</a>
+	</div>
+
+	<div class="right_links">
+		<a id="save" onclick="document.fullform.submit();">Save Changes</a>
+	</div>
+
+	<input type="hidden" id="hiddenSession" name="session" value="$session">
+	</form>
+
+	<script language="javascript">
+		\$('.config_menu').corner("round tl bl");
+		\$('#config_container').corner("round");
+		\$('#help').corner("round");
+		\$('#save').corner("round");
+	</script>
+
+</body>
+</html>
