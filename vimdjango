@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PROJECT=`python2 -c "import os; print os.getcwd().partition('tdddjango')[2].split(os.sep)[1]"`
+export PYTHONPATH="${PYTHONPATH}:/home/dnewman/dev/"
+DJANGO_SETTINGS_MODULE=$PROJECT.settings vim $@
