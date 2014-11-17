@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/bin/terminator -e '/usr/bin/ncmpc -mc -h 127.0.0.1' -T "ncmpc"
+/usr/bin/ncmpc -mc -h 127.0.0.1
