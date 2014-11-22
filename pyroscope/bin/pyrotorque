@@ -1,9 +1,0 @@
-#!/home/dnewman/.bin/pyroscope/bin/python2
-# EASY-INSTALL-ENTRY-SCRIPT: 'pyrocore==0.4.3dev','console_scripts','pyrotorque'
-__requires__ = 'pyrocore==0.4.3dev'
-import sys
-from pkg_resources import load_entry_point
-
-sys.exit(
-   load_entry_point('pyrocore==0.4.3dev', 'console_scripts', 'pyrotorque')()
-)
