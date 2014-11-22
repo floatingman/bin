@@ -1,5 +1,7 @@
 #!/bin/bash
-cd ~/images/wallpapers
+# cd ~/images/wallpapers
+olddir=$HOME/Dropbox/Photos/wallpapers/apod
+cd $olddir
 curl -D- -o /dev/null -s http://www.google.com > /dev/null
 if [[ $? == 0 ]]; then
   # get page
@@ -23,9 +25,14 @@ if [[ $? == 0 ]]; then
   echo ${url:11} > last.txt
 
   export DISPLAY=:0
-  nitrogen --set-auto --save "$url2"
-  mv *.jpg auto
-  mv *.gif auto
+  feh --bg-scale $url2
+  # nitrogen --set-zoom-fill --save "$url2"
+  # mv *.jpg auto
+  cp *.jpg auto
+  # mv *.jpg $olddir
+  # mv *.gif $olddir
+  cp *.gif auto
+  # mv *.gif $olddir
   #clean
   rm -f urls.txt
   rm -f *.html
