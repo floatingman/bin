@@ -1,3 +1,4 @@
+LICENSE
 MANIFEST.in
 README
 bootstrap.sh
@@ -19,6 +20,7 @@ src/pyrocore.egg-info/top_level.txt
 src/pyrocore/daemon/__init__.py
 src/pyrocore/daemon/webapp.py
 src/pyrocore/data/config/rtorrent-0.8.6.rc
+src/pyrocore/data/config/rtorrent-0.8.9.rc
 src/pyrocore/flexget/__init__.py
 src/pyrocore/flexget/conditions.py
 src/pyrocore/flexget/connector.py
@@ -52,5 +54,7 @@ src/pyrocore/util/matching.py
 src/pyrocore/util/metafile.py
 src/pyrocore/util/osmagic.py
 src/pyrocore/util/pymagic.py
+src/pyrocore/util/stats.py
 src/pyrocore/util/traits.py
 src/pyrocore/util/xmlrpc.py
+src/scripts/migrate_rtorrent_rc.sh
