@@ -9,5 +9,5 @@
 #trayer --edge top --align right --SetDockType true --SetPartialStrut true \
 #  --expand true --width 5 --transparent true --tint 0x191970 --height 12
 trayer --edge top --align right --SetDockType true --SetPartialStrut true \
-	--expand true --widthtype pixel --width 220 --transparent true --alpha 0 \
+	--expand true --widthtype pixel --width 200 --transparent true --alpha 0 \
 	--tint 0x000000 --height 32

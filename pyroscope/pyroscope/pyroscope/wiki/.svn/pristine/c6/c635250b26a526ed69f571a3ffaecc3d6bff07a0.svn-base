@@ -1,0 +1,53 @@
+#summary A map of the wiki content.
+#sidebar ,
+
+*Documentation Index*
+
+ * [PyroScope Introduction]
+ * [ScreenShotGallery Screenshots]
+ * [QuickStartGuide Installation Guide]
+   * [InstallReleaseVersion Official release]
+   * [InstallToPythonVirtualenv Virtual environment]
+   * [InstallFromSource Development version]
+   * [DebianInstallFromSource Linux setup from scratch]
+   * TroubleShooting
+ * [UserConfiguration Configuration Guide]
+ * [MigrationGuide Updating Guide]
+ * Usage
+   * [CommandLineTools CLI Tools Overview]
+   * [RtControlExamples Using rtcontrol]
+   * [OutputTemplates Templating]
+   * [QueueManager Queue Manager]
+   * [EventHandling Event Handling]
+   * [BashCompletion Bash completion]
+   * [RtorrentExtended rTorrent extensions]
+ * 3rd Party Add-ons
+   * [FlexGetPlugins FlexGet plugins]
+   * [PyroScopeScreenlet Desktop screenlet]
+ * Advanced Concepts
+   * [CustomFields Defining custom fields]
+   * [RtXmlRpcExamples Using rtxmlrpc]
+   * [WriteYourOwnScripts Python scripts]
+   * [RemoteConnections Connecting via SSH]
+   * [ExperimentalStuff Experimental features]
+ * Reference
+   * [http://packages.python.org/pyrocore/apidocs/ pyrocore API]
+   * [RtXmlRpcReference rTorrent XMLRPC]
+   * [RtXmlRpcMigration XMLRPC Migration]
+   * [BitTorrent BitTorrent protocol]
+ * Links
+   * [https://www.ohloh.net/p/pyroscope/ ohloh]
+   * [http://freshmeat.net/projects/pyrocore freshmeat]
+   * [http://groups.google.com/group/pyroscope-users User Mailing List]
+   * [http://libtorrent.rakshasa.no/ rTorrent Homepage]
+   * [http://wiki.rtorrent.org/ rTorrent Community Wiki]
+
+*Wiki Navigation*
+ * [WikiSideBar Index]
+ * [http://code.google.com/p/pyroscope/w/list?can=1&q=&sort=-changed+pagename&colspec=Changed+RevNum+ChangedBy+PageName+Summary Recent changes]
+ * [http://code.google.com/p/pyroscope/w/list?can=3 Featured pages]
+
+*Topics*
+ * [http://code.google.com/p/pyroscope/w/list?can=2&q=label%3Ainstallation Installation]
+ * [http://code.google.com/p/pyroscope/w/list?can=2&q=label%3Aconfiguration Configuration]
+ * [http://code.google.com/p/pyroscope/w/list?can=2&q=label%3Acli Command line]

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /mnt/BigMamaMedia/Media/Audio/music/ && find . -type f -mtime -30 |
+egrep '\.mp3$|\.flac$' | awk '{ sub(/^\.\//, ""); print }' > /mnt/BigMamaMedia/Media/Audio/playlist/newmusic.m3u
