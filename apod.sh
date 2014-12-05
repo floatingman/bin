@@ -28,10 +28,11 @@ if [[ $? == 0 ]]; then
   feh --bg-scale $url2
   # nitrogen --set-zoom-fill --save "$url2"
   # mv *.jpg auto
-  cp *.jpg auto
+  # cp *.jpg auto
   # mv *.jpg $olddir
   # mv *.gif $olddir
-  cp *.gif auto
+  # cp *.gif auto
+  cp $url2 auto
   # mv *.gif $olddir
   #clean
   rm -f urls.txt
