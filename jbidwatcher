@@ -1,0 +1,2 @@
+#!/bin/sh
+java -jar /home/dnewman/.bin/JBidwatcher-2.5.6.jar
