@@ -1,0 +1,20 @@
+# requires pyroscope to be installed
+
+#! /bin/bash
+SCGI_SOCKET=~/rtorrent/.scgi_local
+
+if test \! -S $SCGI_SOCKET; then
+    echo >&2 "rTorrent is not running (no socket $SCGI_SOCKET)"
+    exit 1
+fi
+
+echo -n rTorrent $(rtxmlrpc system.client_version)/$(rtxmlrpc system.library_version)
+echo -n , up $(rtxmlrpc to_elapsed_time $(ls -l --time-style '+%s' $SCGI_SOCKET | awk '{print $6}'))
+echo -n \ [$(rtcontrol -qosize \* | awk '{ SUM += $1} END { print SUM/1024/1024/1024 }') GiB loaded]
+echo -n , D:$(rtxmlrpc to_mb $(rtxmlrpc get_down_total)) MiB
+echo -n \ @ $(rtxmlrpc to_kb $(rtxmlrpc get_down_rate)) 
+echo -n \ / $(rtxmlrpc to_kb $(rtxmlrpc get_download_rate)) KiB/s
+echo -n , U:$(rtxmlrpc to_mb $(rtxmlrpc get_up_total)) MiB
+echo -n \ @ $(rtxmlrpc to_kb $(rtxmlrpc get_up_rate)) 
+echo -n \ / $(rtxmlrpc to_kb $(rtxmlrpc get_upload_rate)) KiB/s
+echo
