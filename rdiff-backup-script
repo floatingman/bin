@@ -1,0 +1,50 @@
+#!/bin/sh
+
+#mount /bak
+#mount /boot
+#mount /mnt/win
+
+rdiff-backup \
+   --exclude-regexp 'cache$' \
+   --exclude-regexp '(?i)/te?mp$' \
+   --exclude /mnt \
+   --exclude /vol \
+   --exclude /bak \
+   --exclude /usr/media \
+   --exclude /usr/media/misc \
+   --exclude /usr/lib \
+   --exclude /tmp \
+   --exclude /var/dl \
+   --exclude /var/spool \
+   --exclude /var/cache \
+   --exclude /proc \
+   --exclude /dev \
+   --exclude /sys \
+/ /mnt/Extra/rootbackup
+
+echo "----------------------------------------"
+echo " * Listing increments of backup"
+echo "----------------------------------------"
+rdiff-backup --list-increments /mnt/Extra/rootbackup
+
+echo ""
+echo "----------------------------------------"
+echo " * Removing backups older than 5 Weeks"
+echo "----------------------------------------"
+rdiff-backup --force --remove-older-than 5W /mnt/Extra/rootbackup
+
+##Force is necessary because:
+#Fatal Error: Found 2 relevant increments, dated:
+#Sat Apr 10 12:39:24 2004
+#Sat Apr 17 04:15:01 2004
+#If you want to delete multiple increments in this way, use the --force.
+
+echo ""
+echo "----------------------------------------"
+echo " * Disk usage after backup"
+echo "----------------------------------------"
+df -h
+
+#umount /bak
+#umount /boot
+#umount /mnt/win
