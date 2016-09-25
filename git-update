@@ -1,6 +1,6 @@
 #!/bin/bash
 
-START_HERE="/home/dnewman/git/";
+START_HERE="/home/dnewman/gitrepos/";
 
 cd $START_HERE;
 
