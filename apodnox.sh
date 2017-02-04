@@ -21,23 +21,9 @@ if [[ $? == 0 ]]; then
   # download all images
   IMG_LINK=`echo "http://apod.nasa.gov/apod/"$url`
   wget -q $IMG_LINK
-  notify-send 'Todays APOD picture downloaded' $url2
   echo ${url:11} > last.txt
-
-  export DISPLAY=:0
-  feh --bg-scale $url2
-  # nitrogen --set-zoom-fill --save "$url2"
-  # mv *.jpg auto
-  # cp *.jpg auto
-  # mv *.jpg $olddir
-  # mv *.gif $olddir
-  # cp *.gif auto
   cp $url2 auto
-  # mv *.gif $olddir
-  #clean
   rm -f urls.txt
   rm -f *.html
-else
-  notify-send 'APOD no internet'
 fi
 exit 0
