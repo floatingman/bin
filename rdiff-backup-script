@@ -8,6 +8,7 @@ rdiff-backup \
    --exclude-regexp 'cache$' \
    --exclude-regexp '(?i)/te?mp$' \
    --exclude /mnt \
+   --exclude /media \
    --exclude /vol \
    --exclude /bak \
    --exclude /usr/media \
@@ -20,18 +21,18 @@ rdiff-backup \
    --exclude /proc \
    --exclude /dev \
    --exclude /sys \
-/ /mnt/Extra/rootbackup
+/ /media/mirage/backup/shockwaverootbackup
 
 echo "----------------------------------------"
 echo " * Listing increments of backup"
 echo "----------------------------------------"
-rdiff-backup --list-increments /mnt/Extra/rootbackup
+rdiff-backup --list-increments /media/mirage/backup/shockwaverootbackup
 
 echo ""
 echo "----------------------------------------"
 echo " * Removing backups older than 5 Weeks"
 echo "----------------------------------------"
-rdiff-backup --force --remove-older-than 5W /mnt/Extra/rootbackup
+rdiff-backup --force --remove-older-than 5W /media/mirage/backup/shockwaverootbackup
 
 ##Force is necessary because:
 #Fatal Error: Found 2 relevant increments, dated:
