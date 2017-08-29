@@ -4,7 +4,7 @@ emacsdir=/usr
 socket=$HOME/.emacs.d/server/server
 
 if [ ! -e $socket ]; then
-   $emacsdir/Emacs &
+   $emacsdir/bin/emacs &
    while [ ! -e $socket ]; do
      sleep 1
    done
