@@ -1,6 +1,6 @@
 #!/bin/bash
 
-emacsdir=/Applications/Emacs.app/Contents/MacOS
+emacsdir=/usr
 socket=$HOME/.emacs.d/server/server
 
 if [ ! -e $socket ]; then
