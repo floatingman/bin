@@ -8,3 +8,5 @@ wires
 chromedriver
 geckodriver
 terraform
+qatplogin.sh
+BrowserStackLocal
