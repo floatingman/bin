@@ -1,0 +1,36 @@
+#!/bin/sh
+
+#mount /bak
+#mount /boot
+#mount /mnt/win
+
+rdiff-backup \
+   --exclude /mnt/SuperBig/Cache \
+/mnt/SuperBig /mnt/backup/backdir
+
+echo "----------------------------------------"
+echo " * Listing increments of backup"
+echo "----------------------------------------"
+rdiff-backup --list-increments /mnt/backup/backdir
+
+echo ""
+echo "----------------------------------------"
+echo " * Removing backups older than 5 Weeks"
+echo "----------------------------------------"
+rdiff-backup --force --remove-older-than 5W /mnt/backup/backdir
+
+##Force is necessary because:
+#Fatal Error: Found 2 relevant increments, dated:
+#Sat Apr 10 12:39:24 2004
+#Sat Apr 17 04:15:01 2004
+#If you want to delete multiple increments in this way, use the --force.
+
+echo ""
+echo "----------------------------------------"
+echo " * Disk usage after backup"
+echo "----------------------------------------"
+df -h
+
+#umount /bak
+#umount /boot
+#umount /mnt/win
