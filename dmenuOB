@@ -1,4 +1,0 @@
-#!/bin/sh
-`dmenu_path | dmenu -b -fn '-*-arial-medium-r-*-*-12-*-*-*-*-*-*-*' -nb '#111111' -nf '#FFFFFF' -sb '#0066ff'` && eval "exec $exe"
-
-

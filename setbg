@@ -1,0 +1,3 @@
+#!/bin/sh
+# Sets the background. Many scripts need to do this, but I've put it here so you can easily change all their actions.
+xwallpaper --center ~/.config/wall.png
