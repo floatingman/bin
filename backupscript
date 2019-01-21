@@ -1,0 +1,1 @@
+rsync -azP --delete /mnt/SuperBig/ /mnt/backup/backdir
