@@ -7,10 +7,10 @@ then
   tmux new-session -s development -n editor -d
 
   # change directory to project directory
-  tmux send-keys -t development 'cd ~/Projects' C-m
+  tmux send-keys -t development 'cd ~/Code' C-m
 
   # start vim
-  tmux send-keys -t development 'vim' C-m
+  tmux send-keys -t development 'nvim' C-m
 
   # split window horizontally
   tmux split-window -v -t development
@@ -19,11 +19,11 @@ then
   #tmux select-layout -t development main-horizontal
 
   #change directory in pane 2
-  tmux send-keys -t development:1.2 'cd ~/Projects' C-m
+  tmux send-keys -t development:1.2 'cd ~/Code' C-m
 
   # create a full screen console on second window
   tmux new-window -n console -t development
-  tmux send-keys -t development:2 'cd ~/Projects' C-m
+  tmux send-keys -t development:2 'cd ~/Code' C-m
 
   # show first window when starting up
   tmux select-window -t development:1
