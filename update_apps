@@ -12,23 +12,17 @@ echo ''
 echo '♢ Updating Brew Cask apps'
 brew cask outdated | grep -v real-vnc | xargs -n1 brew cask install --force
 
-#echo ''
-#echo '♢ ZSH Zim'
-#zsh ${ZIM_HOME}/tools/zim_update
-
-
 echo ''
 echo '♢ tldr'
 tldr --update
 
-
-#echo ''
-#echo '♢ Update dotfiles'
-#cd ${DOTFILES_PATH}
-#git pull --rebase --autostash
-#brew bundle install --file=${HOMEBREW_BUNDLE_FILE_PATH}
-#brew bundle dump --file=${HOMEBREW_BUNDLE_FILE_PATH} --force
-#brew bundle cleanup --file=${HOMEBREW_BUNDLE_FILE_PATH} --force
+echo ''
+echo '♢ Update dotfiles'
+cd ${DOTFILES_PATH}
+git pull --rebase --autostash
+brew bundle install --file=${HOMEBREW_BUNDLE_FILE_PATH}
+brew bundle dump --file=${HOMEBREW_BUNDLE_FILE_PATH} --force
+brew bundle cleanup --file=${HOMEBREW_BUNDLE_FILE_PATH} --force
 
 if [ "$1" == "--all" ]; then
     echo ''
