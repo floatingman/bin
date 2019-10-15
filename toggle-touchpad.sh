@@ -1,8 +1,8 @@
 #!/bin/bash
 # change this string to match which mouse you want to disable from xinput list
-# touchpadString="SynPS/2 Synaptics TouchPad"
- touchpadString="VMware VMware Virtual USB Mouse"
- touchpadID=$(xinput list | grep "$touchpadString" | awk -F " " '{print $8}' | awk -F "=" '{print $2}')
+ touchpadString="SynPS/2 Synaptics TouchPad"
+# touchpadString="VMware VMware Virtual USB Mouse"
+ touchpadID=$(xinput list | grep "$touchpadString" | awk -F " " '{print $6}' | awk -F "=" '{print $2}')
  touchpadEnabled=$(xinput list-props $touchpadID | grep "Device Enabled" | awk -F ":" '{print $2}')
 
  # Check for arguments on the command line
