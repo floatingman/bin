@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# This bash script will lint a jenkinsfile.
+# Setup just requires creating an api key on the jenkins server
+# Then setting that api key in a .netrc file
+# which format is:
+# machine <jenkinsurl>
+# login <your username>
+# password <apikey>
+# Change JENKINS_URL to your jenkins server
+JENKINS_URL='https://jenkins.ci.xoeye.com'
+JENKINS_CRUMB=`curl -n "$JENKINS_URL/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)"`
+curl -X POST -H $JENKINS_CRUMB -n -F "jenkinsfile=<Jenkinsfile" $JENKINS_URL/pipeline-model-converter/validate
