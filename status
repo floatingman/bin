@@ -1,0 +1,21 @@
+#!/bin/bash
+declare status=$(head -1 "$HOME/.status")
+declare newstatus="$*"
+declare ftfile=~/.vim/curfiletype
+if [ -n "$newstatus" ]; then
+  status=$newstatus
+  echo "$newstatus" > ~/.status
+  exit 0
+fi
+if [[ -s "$ftfile" ]]; then
+  declare ft=$(head -1 "$ftfile")
+  if [[ -z "$ft" ]]; then
+    echo $status
+    exit 0
+  fi
+  case "$ft" in
+    vim) ft=vimscript;;
+    markdown) ft="pandoc markdown";;
+  esac
+  echo "$status [${ft^^}]"
+fi

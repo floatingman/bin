@@ -1,0 +1,14 @@
+#!/bin/bash
+
+declare str="$*"
+declare encoded=""
+for ((i=0; i<${#str}; i++ ))
+do
+  c=${str:$i:1}
+  case "$c" in
+    [-_.~a-zA-Z0-9]) x="$c" ;;
+    *) printf -v x '%%%02x' "'$c" ;;
+  esac
+  encoded+="$x"
+done
+echo "$encoded"

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+argsorin () {
+    buf="$*"
+    if [ -n "$buf" ]; then
+      echo -n "$buf"
+      return
+    fi
+    while IFS= read -r line; do
+        buf=$buf$line
+    done
+    echo "$buf"
+}
+
+echo $(argsorin $*)
