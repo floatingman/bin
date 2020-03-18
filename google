@@ -1,0 +1,8 @@
+#!/bin/sh
+
+google () {
+  url=$(urlencode "$*")
+  lynx "google.com/search?q=$url"
+}
+
+google $*

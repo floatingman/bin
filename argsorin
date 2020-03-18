@@ -1,6 +1,6 @@
 #!/bin/sh
 
-argsorin () {
+argsorin () { 
     buf="$*"
     if [ -n "$buf" ]; then
       echo -n "$buf"

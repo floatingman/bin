@@ -1,0 +1,12 @@
+#!/bin/sh
+
+afk () { 
+  message=AFK
+  why="$*"
+  if [ -n "$why" ]; then
+    message="$message $why"
+  fi
+  figl "$message"
+  echo "$message" > ~/.vim/curfiletype
+}
+afk $*

@@ -2,7 +2,7 @@
 
 duck () {
   url=$(urlencode "$*")
-  l "duckduckgo.com/lite?q=$url"
+  lynx "duckduckgo.com/lite?q=$url"
 }
 
 duck $*
