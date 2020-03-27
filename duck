@@ -5,4 +5,4 @@ duck () {
   lynx "duckduckgo.com/lite?q=$url"
 }
 
-duck $*
+duck "$*"
