@@ -98,7 +98,7 @@ elif test $# -eq 1 ; then
 	DAY=$(echo "$1" | cut -d ' ' -f 1)
 	MONTH=$(echo "$1" | cut -d ' ' -f 2)
 	DATE=$(echo "$1" | cut -d ' ' -f 3)
-n	TIME=$(echo "$1" | cut -d ' ' -f 4)
+	TIME=$(echo "$1" | cut -d ' ' -f 4)
 	YEAR=$(echo "$1" | cut -d ' ' -f 5)
 	TIMEZONE=$(echo "$1" | cut -d ' ' -f 6)
 	HOUR=$(echo "$TIME" | cut -d ':' -f 1)
