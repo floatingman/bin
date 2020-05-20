@@ -39,12 +39,12 @@ mpd_prop() {
 # todo: add --config option
 set_config() {
   unset mpd_config
-  
+
   # mpd.conf passed on commandline
   read -r mpd_config < <(pgrep -fl $(which --skip-tilde mpd)\  | awk '{print $3}')
   [[ -n "$mpd_config" ]] && return 0
 
-  mpd_config="$HOME/.mpd/mpd.conf"
+  mpd_config="$HOME/.config/mpd/mpd.conf"
   [[ -n "$mpd_config" ]] && return 0
 
   mpd_config='/etc/mpd.conf'
@@ -68,7 +68,7 @@ set_playlist() {
 
 play_random() {
   local track position
-  
+
   read -r track < <(sort -R "$playlist_file")
   [[ -z "$track" ]] && return 1
 
@@ -88,7 +88,7 @@ play_random() {
 
 print_list() {
   local music_directory
-  
+
   read -r music_directory < <(mpd_prop 'music_directory')
   [[ -n "$music_directory" ]] && sed "s|^|$music_directory/|g" "$playlist_file"
 
