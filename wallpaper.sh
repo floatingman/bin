@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=/home/dnewman/Dropbox/Photos/wallpapers/apod
+DIR=/home/dnewman/wallpapers/apod
 FLOOR=1
 RANGE=`ls -1 "$DIR"/*.jpg "$DIR"/*.png "$DIR"/*.gif | wc | awk '// {print $1}'`
 
