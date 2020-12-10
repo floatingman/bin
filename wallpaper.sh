@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=/home/dnewman/wallpapers/apod
+DIR=/home/dnewman/Syncs/wallpapers/
 FLOOR=1
 RANGE=`ls -1 "$DIR"/*.jpg "$DIR"/*.png "$DIR"/*.gif | wc | awk '// {print $1}'`
 
@@ -24,4 +24,3 @@ while [ 1 -eq 1 ]; do
 	COUNTER=1
 	sleep 15m
 done
-
