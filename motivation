@@ -1,8 +1,0 @@
-#!/bin/bash
-
-MOTIVATIONS=$(curl -s 'https://gofuckingwork.com/quotes.json' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:74.0) Gecko/20100101 Firefox/74.0' -H 'Accept: */*' -H 'Accept-Language: en-GB,en;q=0.5' --compressed -H 'DNT: 1' -H 'Connection: keep-alive' -H 'Referer: https://gofuckingwork.com/' -H 'Cookie: __cfduid=daeb8f7a499135fbe6b8141014a12feda1585665710' | jq -c -r '[.language.en[] | if length == 2 then .[0] else . end] | join(":")')
-
-IFS=':' read -ra QUOTES <<< "$MOTIVATIONS"
-index=$(shuf -i 1-${#QUOTES[@]} -n 1)
-
-echo "${QUOTES[$index-1]}"
