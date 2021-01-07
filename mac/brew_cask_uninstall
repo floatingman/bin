@@ -1,7 +1,7 @@
 if [[ -z $1 ]]; then
-  to_uninstall=$(brew cask list | fzf)
+  to_uninstall=$(brew list --cask  | fzf)
   else
-  to_uninstall=$(brew cask list | grep $1 | fzf)
+  to_uninstall=$(brew list --cask | grep $1 | fzf)
 fi
 
 if [[ -z ${to_uninstall} ]]; then
@@ -10,4 +10,4 @@ if [[ -z ${to_uninstall} ]]; then
   exit 1
 fi
 
-brew cask uninstall ${to_uninstall}
+brew uninstall --cask ${to_uninstall}
