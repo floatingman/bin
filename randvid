@@ -1,5 +1,5 @@
 #!/bin/sh
 
 myfile=$( find ./ -type f -size +50M | shuf -n 1 )
-
+echo $myfile
 mpv $myfile
