@@ -1,6 +1,5 @@
 #!/bin/bash
-# cd ~/images/wallpapers
-olddir=$HOME/Dropbox/Photos/wallpapers/apod
+olddir=$HOME/wallpapers/apod
 cd $olddir
 curl -D- -o /dev/null -s http://www.google.com > /dev/null
 if [[ $? == 0 ]]; then
