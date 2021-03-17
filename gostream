@@ -1,0 +1,3 @@
+#!/bin/bash
+streamer="$1"
+streamlink --player mpv http://twitch.tv/$streamer best & chatty -channel $streamer -connect
