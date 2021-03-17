@@ -1,0 +1,514 @@
+#! /usr/bin/env bash
+
+# ABOUT THIS SCRIPT
+# --------------------------------------------------------------------
+# This script finds files and/or large directories.
+script_name=spacebot
+script_version=0.1.3
+script_date=20200817
+script_license=GPLv3
+script_url=https://gitlab.com/beepmode/spacebot/-/blob/master/spacebot
+script_url_raw=https://gitlab.com/beepmode/spacebot/-/raw/master/spacebot
+
+# Vim :set tabstop=2 shiftwidth=2 expendtab
+
+
+# VARIABLES
+# --------------------------------------------------------------------
+# Default variables used in the script. You can change the variables 
+# on the fly via command line options.
+
+# [$check_files] and [$no_check_files]
+# Booleans to define if the script should find large files.
+check_files=true
+no_check_files=false
+
+# [$check_dirs] and [$no_check_files]
+# Booleans to define if the script should find large directories.
+check_dirs=true
+no_check_dirs=false
+
+# [$dir]
+# The directory in which the script should look for files.
+dir=/
+
+# [$file_size]
+# The minimum file size for the command that finds large files.
+file_size=100
+
+# [$file_size_unit]
+# The unit for $file_size. Common values are 'k', 'M' and 'G'.
+file_size_unit=M
+
+# [$file_sort]
+# The sort order of the output file ('size', 'date' or 'file')
+file_sort=size
+
+# [$dir_limit]
+# The number of large directories that should be listed.
+dir_limit=50
+
+# [$dir_depth]
+# How far du should traverse into the directory tree.
+dir_depth=5
+
+# [$output_dir]
+# The directory for the output file
+output_dir=$PWD
+
+# [$output_file]
+# The output file's name
+output_file=spacebot_$(date +"%Y%m%d%H%M")
+
+# [$output_file_tmp]
+# The name of the temporary output file.
+output_file_tmp=spacebot_tmp
+
+# [$email]
+# An array of email addresses. The script's output will be sent to 
+# these addresses.
+email=( example1@example.com example2@example.com )
+
+
+# GENERAL FUNCTIONS
+# --------------------------------------------------------------------
+# Function to do some housekeeping.
+housekeeping() {
+  # Remove old temp files:
+  if [ -e "$output_dir"/"$output_file_tmp" ]; then
+    rm -f "$output_dir"/"$output_file_tmp"
+  fi
+}
+
+# Function to join elements of an array.
+join_array() {
+  local IFS="$1"; shift ; echo "$*";
+}
+
+
+# VALIDATION FUNCTIONS
+# --------------------------------------------------------------------
+# Function to validate $check_files and $no_check_files. We just need 
+# to make sure that both aren't set to true.
+validate_check_files() {
+  if [ -n "$check_files" ] && [ "$no_check_files" ]; then
+    if [ "$check_files" = true ] && [ "$no_check_files" = true ]; then
+      no_check_files=false
+      printf '%s\n' "*** Warning: it's unclear if you want look for large files ***"
+      printf '%s\n' "    Assuming that you do want to look for large files." ""
+    fi
+  fi
+}
+
+# Function to validate $check_dirs and $no_check_dirs. We just need 
+# to make sure that both aren't set to true.
+validate_check_dirs() {
+  if [ -n "$check_dirs" ] && [ "$no_check_dirs" ]; then
+    if [ "$check_dirs" = true ] && [ "$no_check_dirs" = true ]; then
+      no_check_dirs=false
+      printf '%s\n' "*** Warning: it's unclear if you want look for large directories ***"
+      printf '%s\n' "    Assuming that you do want to look for large directories." ""
+    fi
+  fi
+}
+
+# Function to validate $dir.
+validate_dir() {
+  if ! [ -d "$dir" ]; then
+    printf '%s\n' "*** Error: invalid directory ($dir) ***"
+    exit 1
+  fi
+}
+
+# Function to validate and format $file_size and $file_size_unit.
+validate_file_size() {
+  # Check if the variable is set al all:
+  if [ -z "$file_size" ]; then
+    printf '%s\n' "*** Error: no file size is set ***"
+    exit 1
+  fi
+
+  # $size may include a tailing character defining the unit (as per 
+  # the `find` man page). If no unit is specified $size_init is used.
+  if [[ $file_size =~ ([0-9])$ ]]; then
+    file_size=${file_size}${file_size_unit}
+  elif ! [[ $file_size =~ ([0-9])([cwbkMG]{1}$) ]]; then
+    printf '%s\n' "*** Error: invalid file size ($file_size) ***"
+    exit 1
+  fi
+}
+
+# Function to validate $file_sort.
+validate_file_sort() {
+  case "$file_sort" in 
+    size)
+      sort_cmd() { sort -hr; }
+    ;;
+    date)
+      sort_cmd() { sort -rk 2; }
+    ;;
+    file|name)
+      sort_cmd() { sort -k 3; }
+    ;;
+    *)
+      printf '%s\n' "*** Error: invalid sort order ($file_sort) ***"
+      exit 1
+    ;;
+  esac
+}
+
+# Function to validate $dir_limit.
+validate_dir_limit() {
+  if ! [[ $dir_limit =~ ^([0-9]{1,6})$ ]]; then
+    printf '%s\n' "*** Error: invalid dir limit ($dir_limit) ***"
+    exit 1
+  fi
+}
+
+# Function to validate $dir_depth.
+validate_dir_depth() {
+  if ! [[ $dir_depth =~ ^([1-9]){1,4}$ ]]; then
+    printf '%s\n' "*** Error: invalid dir depth ($dir_depth) ***"
+    exit 1
+  fi
+}
+
+# Function to validate $output_dir and $output_file.
+validate_output() {
+  if ! [ -d "$output_dir" ]; then
+    printf '%s\n' "*** Error: Output directory $output_dir doesn't exist ***"
+    exit 1
+  fi
+
+  if [[ $output_file =~ [a-zA-Z0-9_-[[:blank:]]] ]]; then
+    printf '%s\n' "*** Error: Invalid output file name ***"
+    exit 1
+  fi
+
+  # Concatenate the output directory and file:
+  output=$output_dir/$output_file
+}
+
+# Function to validate email addresses.
+validate_email() {
+
+  # We need to validate the email addresses(es) and check if mailx 
+  # is installed. $no_mail is introduced here to keep track if we 
+  # can fire off an email:
+  no_email=false
+
+  # Next, we check if $email has been set to 'none'. If it's not we 
+  # crack on and validate the email addresses:
+  if [ "${email[*]}" = "none" ]; then
+    no_email=true
+  elif [ ${#email[@]} -ge 1 ]; then
+    for mail_addr in "${email[@]}"; do
+      if ! [[ $mail_addr =~ ^[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:].]{2,24}$ ]]; then
+        printf '%s\n' "*** Error: invalid email address ($mail_addr) ***"
+        exit 1
+      fi
+    done
+  else
+    no_email=true
+  fi 
+
+  # Join the mail array (as mailx wants a comma-separated string):
+  mail_string=$(join_array ',' "${email[@]}")
+
+  # And finally, make sure mailx is installed (we only need to 
+  # check this if $no_email is still false):
+  if [ "$no_email" = false ]; then
+    if ! command -v mailx &> /dev/null; then
+      no_email=true
+      printf '%s\n' "" "*** Warning: no email will be sent as mailx is not installed.***"
+    fi
+  fi
+}
+
+
+# FUNCTIONS THAT PRINT STUFF
+# --------------------------------------------------------------------
+# Function to print help information
+function print_help() {
+cat <<-USAGE
+
+$script_name finds large files and/or directories. It understands the 
+following options:
+
+--check-files
+Look for large files.
+
+--no-check-files
+Do not look for large files.
+
+--check-dirs
+Look for large directories.
+
+--no-check-dirs
+Do not look for large directores.
+
+--dir=[dir]
+The directory that should be checked.
+
+--file-size=[size]
+The minimum file size. You can append units such as 'k', 'M' and 'G'. 
+(i.e. both '100' and '100M' are valid).
+
+--file-sort=[size|date|file]
+Sort the list of large files by size, date or file.
+
+--dir-limit=[number]
+The number of large directories that should be listed when looking 
+for large directories
+
+--output-dir=[dir]
+The directory where the script's output should be stored.
+
+--output-file
+The name of the output file.
+
+--email=[email@address|none]
+One or more email addresses to which the output should be send. You 
+can specify multiple addresses (use double quotes and separate the 
+addresses with spaces). Use 'none' to disable the email function.
+
+--vardump
+Print the variables the script uses and exit.
+
+--version
+Print version information.
+
+--license
+Print license information
+
+--help
+Print this help text
+
+USAGE
+exit 0
+}
+
+# Function to print version information
+function print_version() {
+cat <<-VERSION
+$script_name $script_version ($script_date):
+URL: $script_url
+Raw: $script_url_raw
+
+VERSION
+exit 0
+}
+
+# Function to print license information
+function print_license() {
+cat <<- LICENSE
+$script_license
+
+LICENSE
+exit 0
+}
+# Function to dump variables
+print_vars() {
+  validate_dir
+  validate_file_size
+  validate_dir_limit
+  validate_dir_depth
+  validate_output
+  validate_file_sort
+  validate_email
+
+  printf '%s\n' "\$dir:          $dir"
+  printf '%s\n' "\$check_files:  $check_files"
+  printf '%s\n' "\$check_dirs:   $check_dirs"
+  printf '%s\n' "\$file_size:    $file_size"
+  printf '%s\n' "\$file_sort:    $file_sort"
+  printf '%s\n' "\$dir_limit:    $dir_limit"
+  printf '%s\n' "\$dir_depth:    $dir_depth"
+  printf '%s\n' "\$output:       $output"
+  printf '%s\n' "\$email:        $mail_string"
+  exit 0
+}
+
+# Function to find large files
+find_files() {
+
+  # Required functions
+  validate_file_size
+  validate_file_sort
+  
+  # Print a header for the output file:
+  {
+  printf '%s\n' "Files larger than $file_size in $dir"
+  printf '%s\n' "======================================================================"
+  } >> "$output"
+
+  # Print a message for the user:
+  printf '%s\n' "Finding files larger than $file_size in $dir..."
+
+  # Find the files. Virtual file systems are always excluded and stat 
+  # is used to print the size (in bytes), date (as a Unix timestamp) 
+  # and name. The output is written to a temporary file.
+  find "$dir" \
+  -not \( -path "/proc" -prune \) \
+  -not \( -path "/sys" -prune \) \
+  -not \( -path "/run" -prune \) \
+  -type f \
+  -size +"$file_size" \
+  -exec stat --printf='%s\t%Y\t%n\n' '{}' \+ > "$output_file_tmp"
+
+  # Next, we're using awk to convert the files sizes to mebibytes and 
+  # the dates to something human readable.
+  awk -F"\t" '
+    {
+      bytes = $1 /1024/1024; $2 = strftime("%Y-%m-%d", $2);
+      printf "%.0f%s\t%s\t%s\n", bytes, "MB", $2, $3
+     }
+    ' "$output_file_tmp" \
+  | sort_cmd \
+  | tee -a "$output"
+
+  # Print a pretty line for the output file:
+  printf '%s\n' "----------------------------------------------------------------------" "" "" >> "$output"
+}
+
+# Function to find large directories
+  find_dirs() {
+
+  # Required functions:
+  validate_dir_limit
+  validate_dir_depth
+
+  # Print a header for the output file:
+  {
+  printf '%s\n' "Top $dir_limit largest directories"
+  printf '%s\n' "======================================================================"
+  } >> "$output"
+
+  # Print a message for the user:
+  printf '%s\n' "" "Finding the $dir_limit largest directories in $dir..."
+
+  du -ah "$dir" \
+  --exclude=/proc \
+  --exclude=/sys \
+  --exclude=/run \
+  --max-depth="$dir_depth" \
+  | sort -hr \
+  | head -"$dir_limit" \
+  | tee -a "$output"
+
+  # Print a pretty line for the output file:
+  printf '%s\n' "----------------------------------------------------------------------" "" "" >> "$output"
+}
+
+# Function to process output.
+process_output() {
+
+  # Required functions
+  validate_email
+
+  # If $no_email is true we print a message to let the user know 
+  # where the output is stored.
+  if [ "$no_email" = true ]; then
+    printf '%s\n' "" "Output is stored in $output".
+    exit 0
+  elif [ -s "$output" ]; then
+    if ! mailx -s "Disk usage (large files on $HOSTNAME)" "$mail_string" < "$output"; then
+      printf '%s\n' "*** Error: failed to send $script_name email."
+      printf '%s\n' "The output file is $output"
+    fi
+  fi
+}
+
+
+# PARSE ARGUMENTS
+# --------------------------------------------------------------------
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --check-files)
+      check_files=true
+    ;;
+    --no-check-files)
+      check_files=false
+    ;;
+    --check-dirs)
+      check_dirs=true
+    ;;
+    --no-check-dirs)
+      check_dirs=false
+    ;;
+    --dir=*)
+      dir="${1#*=}"
+    ;;
+    --file-size=*)
+      file_size="${1#*=}"
+    ;;
+    --dir-limit=*)
+      dir_limit="${1#*=}"
+    ;;
+    --dir-depth=*)
+      dir_depth="${1#*=}"
+    ;;
+    --output-dir=*)
+      output_dir="${1#*=}"
+    ;;
+    --output-file=*)
+      output_file="${1#*=}"
+    ;;
+    --file-sort=*)
+      file_sort="${1#*=}"
+    ;;
+    --sort=*)
+      file_sort="${1#*=}"
+    ;;
+    --email=*)
+      unset email
+      email_addresses="${1#*=}"
+      IFS=', ' read -r -a email <<< "$email_addresses"
+    ;;
+    --vardump)
+      print_vars
+    ;;
+    --help)
+      print_help
+    ;;
+    --version)
+      print_version
+    ;;
+    --license)
+      print_license
+    ;;
+    *)
+      printf '%s\n' "***Error: invalid argument ($1)"
+      print_help
+    ;;
+  esac
+  shift
+done
+
+
+# DO STUFF
+# --------------------------------------------------------------------
+# Do the housekeeping and make sure there is something to do. If so 
+# we need to create the output file:
+housekeeping
+validate_dir
+validate_output
+if [ "$check_files" = true ] || [ "$check_dirs" = true ]; then
+  touch "$output"
+else
+  printf '%s\n' "Nothing to do" ""
+  exit 0
+fi
+
+# Check if we need to check files:
+if [ "$check_files" = true ]; then
+  find_files
+fi
+
+# Check if we need check directories:
+if [ "$check_dirs" = true ]; then
+  find_dirs
+fi
+
+# Process the output:
+process_output
