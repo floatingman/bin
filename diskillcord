@@ -1,0 +1,3 @@
+#!/bin/bash
+pgrep -i disc | xargs kill
+sleep 4 & discord &
