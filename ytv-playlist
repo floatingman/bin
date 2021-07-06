@@ -1,0 +1,3 @@
+#!/bin/sh
+
+youtube-dl -g --get-duration --get-filename $1 | awk -f $HOME/bin/ytdl2m3u.awk > something.m3u
