@@ -1,2 +1,2 @@
 #!/bin/bash
-chromium --profile-directory=Default --app-id=bhpejilhdlnbiieojniehepjhnggbhfb class="Plex"
+google-chrome-unstable --profile-directory=Default --app-id=bhpejilhdlnbiieojniehepjhnggbhfb class="Plex"
