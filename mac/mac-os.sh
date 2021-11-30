@@ -243,3 +243,8 @@ defaults write com.apple.ActivityMonitor SortDirection -int 0
 ###############################################################################\
 sudo apachectl stop
 sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
+
+###############################################################################
+# Disable gatekeeper and allow apps from anywhere                             #
+###############################################################################
+sudo spctl --master-disable
