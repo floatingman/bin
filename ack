@@ -181,7 +181,7 @@ Regex: status: (open|closed|in progress
         </p>
     </div>
 
-</div> 
+</div>
         <div class="footer">
             <p>
                 Ack is copyright 2005-2021 <a href="http://petdance.com/">Andy Lester</a>,

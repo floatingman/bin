@@ -1,0 +1,8 @@
+# Set executable bit for scripts
+*.sh binary diff merge=text
+*.py binary diff merge=text
+*.rb binary diff merge=text
+*.awk binary diff merge=text
+
+# All other text files
+* text=auto

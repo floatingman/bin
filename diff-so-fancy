@@ -2327,5 +2327,3 @@ sub starts_with_ansi {
 
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
-
-

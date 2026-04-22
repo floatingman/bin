@@ -1,2 +1,3 @@
 #!/bin/bash
-mpv "http://twitch.tv/$1" & chatty -channel $1 -connect
+mpv "http://twitch.tv/$1" &
+chatty -channel $1 -connect

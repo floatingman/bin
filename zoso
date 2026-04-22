@@ -14,12 +14,12 @@
 
 name=$USER
 distro="arch linux"
-kernel=`uname -r`
-wm=`wmctrl -m | grep -i name | awk '{print $2}'`
-pkgs=`pacman -Qqs | wc -l`
-she=`echo $SHELL | cut -d / -f 3`
-dt=`date | awk '{print $1" "$2" "$3}'`
-up=`uptime -p`
+kernel=$(uname -r)
+wm=$(wmctrl -m | grep -i name | awk '{print $2}')
+pkgs=$(pacman -Qqs | wc -l)
+she=$(echo $SHELL | cut -d / -f 3)
+dt=$(date | awk '{print $1" "$2" "$3}')
+up=$(uptime -p)
 
 red="\e[31m"
 grn="\e[32m"
@@ -51,9 +51,9 @@ echo -e "   ${grn}               .888b.. ..d8F                          "
 echo -e "   ${grn}                  .888888F                            "
 echo -e "   ${grn}                     ~~~                              "
 echo
-echo -e "  ${cyn}    distro ${rst}"  " $distro" " ${cyn} kernel ${rst}"  " $kernel "
-echo -e "  ${grn}    wm     ${rst}"  " $wm   " " ${grn}      pkgs    ${rst}"  "$pkgs   "
-echo -e "  ${red}    shell  ${rst}"  " $she    " " ${red}   up    ${rst}"  "  $up   "
-echo -e "  ${prp}    editor ${rst}"  " $EDITOR   " " ${prp}     date    ${rst}"  "$dt   "
+echo -e "  ${cyn}    distro ${rst}" " $distro" " ${cyn} kernel ${rst}" " $kernel "
+echo -e "  ${grn}    wm     ${rst}" " $wm   " " ${grn}      pkgs    ${rst}" "$pkgs   "
+echo -e "  ${red}    shell  ${rst}" " $she    " " ${red}   up    ${rst}" "  $up   "
+echo -e "  ${prp}    editor ${rst}" " $EDITOR   " " ${prp}     date    ${rst}" "$dt   "
 echo
 echo

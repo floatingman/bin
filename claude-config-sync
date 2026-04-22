@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# claude-config-sync — sync live ~/.claude/ changes back to the chezmoi submodule
+#
+# Usage:
+#   claude-config-sync              # sync back, show status
+#   claude-config-sync --commit     # sync back, commit, and push
+#   claude-config-sync --dry-run    # preview what would change
+#
+# Workflow:
+#   1. ECC tools / skills install into ~/.claude/
+#   2. Run this script to copy changes back to the submodule
+#   3. Commit & push in the submodule (auto with --commit)
+#   4. Update submodule pointer in dotfiles: cd ~/.local/share/chezmoi && git add dot_claude && git commit
+
+set -euo pipefail
+
+SUBMODULE="$HOME/.local/share/chezmoi/dot_claude"
+LIVE="$HOME/.claude"
+
+DRY_RUN=false
+AUTO_COMMIT=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run|-n) DRY_RUN=true ;;
+        --commit|-c)  AUTO_COMMIT=true ;;
+        --help|-h)
+            echo "Usage: claude-config-sync [--dry-run] [--commit] [--help]"
+            echo ""
+            echo "Syncs live ~/.claude/ changes back to the chezmoi submodule at"
+            echo "$SUBMODULE"
+            echo ""
+            echo "Options:"
+            echo "  --dry-run, -n   Preview changes without writing"
+            echo "  --commit, -c    Auto-commit and push after syncing"
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ ! -d "$SUBMODULE" ]; then
+    echo "ERROR: Submodule not found at $SUBMODULE" >&2
+    exit 1
+fi
+
+if [ ! -d "$LIVE" ]; then
+    echo "ERROR: Live config not found at $LIVE" >&2
+    exit 1
+fi
+
+# Directories to sync (add future plugin dirs here)
+SYNC_DIRS=(
+    hooks
+    skills
+    rules
+    commands
+    agents
+)
+
+# Individual files to sync (only if they exist in both locations)
+SYNC_FILES=(
+    AGENTS.md
+    marketplace.json
+    plugin.json
+    README.md
+)
+
+RSYNC_OPTS=(-av --delete --exclude='.rtk-hook.sha256')
+
+if $DRY_RUN; then
+    RSYNC_OPTS+=(--dry-run)
+fi
+
+echo "=== Syncing ~/.claude/ → submodule ==="
+echo ""
+
+changed=false
+
+# Sync directories
+for dir in "${SYNC_DIRS[@]}"; do
+    if [ -d "$LIVE/$dir" ]; then
+        echo "--- $dir/ ---"
+        if rsync "${RSYNC_OPTS[@]}" "$LIVE/$dir/" "$SUBMODULE/$dir/"; then
+            changed=true
+        fi
+        echo ""
+    fi
+done
+
+# Sync individual files
+for file in "${SYNC_FILES[@]}"; do
+    if [ -f "$LIVE/$file" ]; then
+        if ! diff -q "$LIVE/$file" "$SUBMODULE/$file" &>/dev/null; then
+            echo "--- $file (changed) ---"
+            if ! $DRY_RUN; then
+                cp "$LIVE/$file" "$SUBMODULE/$file"
+            fi
+            changed=true
+        fi
+    fi
+done
+
+if ! $changed; then
+    echo "No changes detected."
+    exit 0
+fi
+
+echo ""
+echo "=== Submodule git status ==="
+cd "$SUBMODULE"
+
+if $DRY_RUN; then
+    git status --short
+    echo ""
+    echo "(dry run — no changes written)"
+    exit 0
+fi
+
+git add -A
+git status
+
+if $AUTO_COMMIT; then
+    echo ""
+    echo "=== Committing and pushing ==="
+    git commit -m "sync: update from live config ($(date +%Y-%m-%d))" || echo "Nothing to commit"
+    git push
+    echo ""
+    echo "Done. Don't forget to update the submodule pointer in your dotfiles:"
+    echo "  cd ~/.local/share/chezmoi && git add dot_claude && git commit -m 'update claude-config'"
+else
+    echo ""
+    echo "Review the changes above. To commit:"
+    echo "  cd $SUBMODULE"
+    echo "  git commit -m 'sync: update from live config'"
+    echo "  git push"
+    echo ""
+    echo "Then update the submodule pointer in dotfiles:"
+    echo "  cd ~/.local/share/chezmoi && git add dot_claude && git commit -m 'update claude-config'"
+fi

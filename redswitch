@@ -1,0 +1,125 @@
+#!/bin/bash
+
+filename="geolocation.json"
+now=$(date --iso-8601=s)
+key="geoclue"
+redshift="redshift"
+
+usage() {
+    echo "Usage: redswitch [OPTION...]
+Fetch and cache the current location for Redshift. If the location has changed, or Redshift is not running, (re)launch it.
+
+Options:
+    -g      launch Redshift GTK
+    -k      specify a Mozilla Location Services API key (default: $key)
+    -v      verbose output
+    -h      display usage"
+}
+
+log() {
+    if [ "$verbose" = true ]; then
+        echo "$*"
+    fi
+}
+
+init_dir() {
+    if [ -n "$XDG_CACHE_DIR" ]; then
+        output_dir="$XDG_CACHE_DIR"/
+    else
+        output_dir="$HOME"/.cache/
+    fi
+    mkdir -p "$output_dir"
+    filepath="$output_dir/$filename"
+}
+
+fetch_location() {
+    log "Fetching location from Mozilla Location Services"
+    curl --fail --silent --output "$filepath.$now" "https://location.services.mozilla.com/v1/geolocate?key=$key"
+}
+
+update_location() {
+    mv "$filepath.$now" "$filepath"
+    locationchanged=true
+}
+
+compare_location() {
+    locationchanged=false
+
+    # If a location was fetched, and a previous location is stored, compare
+    # them to see if we have changed location.
+    if [ -s "$filepath.$now" ] && [ -s "$filepath" ]; then
+        if cmp -s "$filepath.$now" "$filepath"; then
+            log "Location has not changed"
+            rm "$filepath.$now"
+        else
+            log "Location has changed"
+            update_location
+        fi
+    # If a location was fetched, but no previous location is stored, assume we
+    # have changed location.
+    elif [ -s "$filepath.$now" ]; then
+        log "No previous location found"
+        update_location
+    else
+        log "Failed to fetch location"
+    fi
+
+    # If, after all that, we have no location, bail out.
+    if [ ! -s "$filepath" ]; then
+        log "Location unknown"
+        exit 2
+    fi
+}
+
+get_coords() {
+    coords=$(awk 'OFS=":" {print $3,$5}' "$filepath" | tr -d ',}')
+    log "Current location is: $coords"
+}
+
+reload() {
+    # Check if Redshift is currently running.
+    pid=$(pgrep --delimiter " " "redshift(-gtk)?$")
+
+    # If Redshift is not running, launch it.
+    if [ -z "$pid" ]; then
+        launch
+    # If Redshift is running and the location changed, kill Redshift and
+    # relaunch it.
+    elif [ "$locationchanged" = true ]; then
+        kill $pid
+        launch
+    fi
+}
+
+launch() {
+    get_coords
+    log "Launching Redshift"
+    "$redshift" -r -l "$coords" > /dev/null 2>&1 &
+}
+
+while getopts "vk:gh" opt; do
+    case $opt in
+        k)
+            key=$OPTARG
+            ;;
+        g)
+            redshift="redshift-gtk"
+            ;;
+        v)
+            verbose=true
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+init_dir
+fetch_location
+compare_location
+reload

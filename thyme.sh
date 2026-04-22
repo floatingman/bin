@@ -17,37 +17,34 @@
 # | modified | Wed Mar 22 2017 06:30:35 PDT -0700                              |
 # `----------------------------------------------------------------------------'
 
-
 file_name="$(date +%FT%T%z_%s).json"
 output_dir="${HOME}/tmp/thyme"
 error_log_dir="${HOME}/var/log/error"
 error_log_file="thyme.log"
 interval=5
 
-if command -v thyme > /dev/null 2>&1; then
-  thyme_bin=$(command -v thyme)
+if command -v thyme >/dev/null 2>&1; then
+    thyme_bin=$(command -v thyme)
 else
-  echo "Error: \`thyme\` command not found." >&2
-  exit 127
+    echo "Error: \`thyme\` command not found." >&2
+    exit 127
 fi
 
 if [ ! -d "$output_dir" ]; then
-  if ! mkdir -p "$output_dir"; then
-    printf %s\\n "Failed to create output directory: ${output_dir}" >&2
-    exit 1
-  fi
+    if ! mkdir -p "$output_dir"; then
+        printf %s\\n "Failed to create output directory: ${output_dir}" >&2
+        exit 1
+    fi
 fi
 
 if [ ! -d "$error_log_dir" ]; then
-  if ! mkdir -p "$error_log_dir"; then
-    printf %s\\n "Failed to create error log directory: ${error_log_dir}" >&2
-  fi
+    if ! mkdir -p "$error_log_dir"; then
+        printf %s\\n "Failed to create error log directory: ${error_log_dir}" >&2
+    fi
 fi
 
-
 while true; do
-  $thyme_bin track -o "${output_dir%/}/${file_name}" \
-    2>"${error_log_dir%/}/${error_log_file}"
-  sleep "$interval"
+    $thyme_bin track -o "${output_dir%/}/${file_name}" \
+        2>"${error_log_dir%/}/${error_log_file}"
+    sleep "$interval"
 done
-

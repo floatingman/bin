@@ -2,7 +2,7 @@
 
 if [[ -z $1 ]]; then
   to_uninstall=$(brew leaves | fzf)
-  else
+else
   to_uninstall=$(brew leaves | grep $1 | fzf)
 fi
 

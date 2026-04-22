@@ -17,7 +17,6 @@
 # | modified | Mon Apr 22 2019 16:59:07 PDT -0700                              |
 # `----------------------------------------------------------------------------'
 
-
 # Enable debugging for verbose output
 debug=false
 
@@ -38,7 +37,8 @@ ytdl_snatch_list="${ytdl_root_dir%/}/snatch.list"
 ytdl_archive_list="${ytdl_root_dir%/}/archive.list"
 
 # What video format(s) to grab
-ytdl_format="bestvideo+bestaudio/best"
+# ytdl_format="(bestvideo[vcodec^=av01][height=2160][fps>30]/bestvideo[vcodec=vp9.2][height=2160][fps>30]/bestvideo[vcodec=vp9][height=2160][fps>30]/bestvideo[vcodec^=av01][height=2160]/bestvideo[vcodec=vp9.2][height=2160]/bestvideo[vcodec=vp9][height=2160]/bestvideo[height=2160]/bestvideo[vcodec^=av01][height=1440][fps>30]/bestvideo[vcodec=vp9.2][height=1440][fps>30]/bestvideo[vcodec=vp9][height=1440][fps>30]/bestvideo[vcodec^=av01][height=1440]/bestvideo[vcodec=vp9.2][height=1440]/bestvideo[vcodec=vp9][height=1440]/bestvideo[height=1440]/bestvideo[vcodec^=av01][height=1080][fps>30]/bestvideo[vcodec=vp9.2][height=1080][fps>30]/bestvideo[vcodec=vp9][height=1080][fps>30]/bestvideo[vcodec^=av01][height=1080]/bestvideo[vcodec=vp9.2][height=1080]/bestvideo[vcodec=vp9][height=1080]/bestvideo[height=1080]/bestvideo[vcodec^=av01][height=720][fps>30]/bestvideo[vcodec=vp9.2][height=720][fps>30]/bestvideo[vcodec=vp9][height=720][fps>30]/bestvideo[vcodec^=av01][height=720]/bestvideo[vcodec=vp9.2][height=720]/bestvideo[vcodec=vp9][height=720]/bestvideo[height=720]/bestvideo)+(bestaudio[acodec=opus]/bestaudio)/best"
+ytdl_format="bestvideo+bestaudio"
 
 # Output template for downloaded filenames
 ytdl_output_template="%(uploader)s.%(upload_date)s.%(title)s.%(resolution)s.%(id)s.%(ext)s"
@@ -110,7 +110,8 @@ rclone_config="${HOME}/.config/rclone/rclone.conf"
 rclone_command="copy"
 
 # Where to store downloaded files on the rclone remote
-rclone_destination="perceptor:/mnt/media/Video/YouTube"
+rclone_destination="local:/mnt/media/Video/YouTube"
+# rclone_destination="backblaze:dnew-youtube"
 
 # Rclone flags
 #     * Add any additional rclone flags here, e.g.: "--syslog --bwlimit 5M"
@@ -120,9 +121,7 @@ rclone_destination="perceptor:/mnt/media/Video/YouTube"
 #         * If debug=false, "-q" is appended to rclone command
 rclone_flags="--transfers 8 --checkers 16 --acd-upload-wait-per-gb 5m"
 
-
 # ---------- You probably don't need to edit anything below this ----------
-
 
 # POSIX-friendly variable printing
 say() {
@@ -131,14 +130,12 @@ say() {
   printf %s\\n "${printout_prefix} ${1}"
 }
 
-
 # Error printouts
 say_error() {
   # Prefix for error printouts
   printout_prefix_error="${text_bold}${text_red}[Error]${text_reset}"
   say "${printout_prefix_error} ${1}" >&2
 }
-
 
 say_debug() {
   message_type="$2"
@@ -155,30 +152,30 @@ say_debug() {
   fi
 }
 
-
 # Determine if a directory is empty
 # Source: http://www.etalabs.net/sh_tricks.html
 is_empty() {
   cd "$1" || return 0
-  set -- .[!.]* ; test -f "$1" && return 1
-  set -- ..?* ; test -f "$1" && return 1
-  set -- * ; test -f "$1" && return 1
+  set -- .[!.]*
+  test -f "$1" && return 1
+  set -- ..?*
+  test -f "$1" && return 1
+  set -- *
+  test -f "$1" && return 1
   return 0
 }
-
 
 command_exists() {
   cmd="$1"
 
-  if eval type type > /dev/null 2>&1; then
-    eval type "$cmd" > /dev/null 2>&1
+  if eval type type >/dev/null 2>&1; then
+    eval type "$cmd" >/dev/null 2>&1
   else
-    command -v "$cmd" > /dev/null 2>&1
+    command -v "$cmd" >/dev/null 2>&1
   fi
 
   return $?
 }
-
 
 # Get a value from the video (default is playlist_title) and store it in a
 # variable
@@ -198,11 +195,10 @@ get_video_value() {
       "$3"
   )
 
-  # Assign a default value if `youtube-dl` was unable to pull
+  # Assign a default value if `yt-dlp` was unable to pull
   # `playlist_title` from the video
   video_value="${video_value:-$ytdl_default_video_value}"
 }
-
 
 download_all_the_things() {
   # shellcheck disable=SC2086
@@ -216,15 +212,17 @@ download_all_the_things() {
       $rclone_flags \
       $rclone_debug_flags" \
     --format "$ytdl_format" \
+    --ignore-config \
     --ignore-errors \
     --no-overwrites \
     --output "${ytdl_download_dir%/}/${video_value}/${ytdl_output_template}" \
     --restrict-filenames \
-    --sleep-request 1 \
-    --sleep-interval 5 \
+    --sleep-interval 10 \
     --max-sleep-interval 30 \
+    --embed-thumbnail \
+    --cookies "~/Dropbox/backup/youtube-dl/cookies.txt" \
+    --match-filter "!is_live & title != 'Liked videos' & title != 'Favorites'" \
     --extractor-args youtube:player_client=android \
-    --throttled-rate 100K \
     --merge-output-format "mkv" \
     "$ytdl_debug_flags" \
     $ytdl_subtitle_flags \
@@ -232,17 +230,16 @@ download_all_the_things() {
     "$1"
 }
 
-
 check_rclone_version() {
   minimum_required_version=1.43
-  rclone_version=$(rclone --version|awk '/rclone/ { print $2 }')
+  rclone_version=$(rclone --version | awk '/rclone/ { print $2 }')
   version_prefix="v"
   version_dev="-DEV"
   version_beta="-beta"
 
   if_contains_string() {
     if test "${rclone_version#*$1}" != "$rclone_version"; then
-      rclone_version=$(printf %s\\n "$rclone_version"|$2)
+      rclone_version=$(printf %s\\n "$rclone_version" | $2)
     fi
   }
 
@@ -263,9 +260,10 @@ check_rclone_version() {
   # Trim off `v` from version number
   if_contains_string "$version_prefix" "sed s/^${version_prefix}//"
 
-  meets_minimum_required_version=$(awk -v current="$rclone_version" \
-    -v required="$minimum_required_version" \
-    'BEGIN{print current<required?0:1}' \
+  meets_minimum_required_version=$(
+    awk -v current="$rclone_version" \
+      -v required="$minimum_required_version" \
+      'BEGIN{print current<required?0:1}'
   )
 
   if [ "$meets_minimum_required_version" -eq 0 ]; then
@@ -278,7 +276,6 @@ check_rclone_version() {
     say_debug "Installed version: ${rclone_version}" success
   fi
 }
-
 
 delete_lock_file() {
   say_debug "Removing lock file..."
@@ -294,9 +291,8 @@ delete_lock_file() {
   fi
 }
 
-
 # Colors for info / error printouts
-if tty > /dev/null 2>&1; then
+if tty >/dev/null 2>&1; then
   if command_exists tput; then
     text_reset=$(tput sgr0)
     text_bold=$(tput bold)
@@ -307,7 +303,6 @@ if tty > /dev/null 2>&1; then
   fi
 fi
 
-
 # Where to store temp runtime files (FIFO and lock file)
 temp_file_dir="/tmp"
 
@@ -317,7 +312,6 @@ fifo="${temp_file_dir%/}/ytdlrc.fifo"
 # Where to store lock file to prevent the script from running more than once
 # at a time
 lock_file="${temp_file_dir%/}/ytdlrc.lock"
-
 
 # Set `youtube-dl` and `rclone` command flags depending on debugging status
 if [ "$debug" = true ]; then
@@ -352,17 +346,15 @@ if [ "$ytdl_write_subtitles" = true ] || [ "$ytdl_write_automatic_subtitles" = t
 
   # Set `youtube-dl` flags for embedding subtitles in the file
   if [ "$ytdl_subtitle_embed" = true ]; then
-      # Append `--embed-subs` flag
-      ytdl_subtitle_flags="${ytdl_subtitle_flags} --embed-subs"
+    # Append `--embed-subs` flag
+    ytdl_subtitle_flags="${ytdl_subtitle_flags} --embed-subs"
   fi
 
 fi
 
-
 # Catch CTRL-C; clean up temp files and exit script to prevent further
 # commands from executing
 trap 'delete_lock_file && rm "$fifo" && exit 0' 2
-
 
 # Check for existence of lock file
 if [ -f "$lock_file" ]; then
@@ -377,11 +369,11 @@ else
   if [ -d "${temp_file_dir%/}" ]; then
     # Temp file directory exists; attempt to create lock file
     if touch "$lock_file"; then
-        say_debug "Creating '${lock_file}' succeeded. Continuing..." success
-      else
-        say_error "Could not create lock file '${lock_file}'. Exiting..."
-        exit 1
-      fi
+      say_debug "Creating '${lock_file}' succeeded. Continuing..." success
+    else
+      say_error "Could not create lock file '${lock_file}'. Exiting..."
+      exit 1
+    fi
   else
     # Temp file directory does not exist; attempt to create it
     say_debug "Temp file directory '${temp_file_dir%/}' not found. Attempting to create it..."
@@ -400,7 +392,6 @@ else
     fi
   fi
 fi
-
 
 # Generate required runtime directory and files if they don't already exist
 if [ ! -d "${ytdl_download_dir%/}" ]; then
@@ -430,13 +421,11 @@ if [ ! -f "$ytdl_archive_list" ]; then
   fi
 fi
 
-
 if [ ! -s "$ytdl_snatch_list" ]; then
   say_error "${ytdl_snatch_list} is empty. Exiting..."
   delete_lock_file
   exit 1
 fi
-
 
 say_debug "Checking required commands..."
 required_commands="yt-dlp ffmpeg rclone"
@@ -450,10 +439,8 @@ for cmd in $required_commands; do
   fi
 done
 
-
 # Ensure rclone meets minimum required version
 check_rclone_version
-
 
 # Check if rclone config exists
 say_debug "Checking if rclone configuration file exists..."
@@ -467,7 +454,7 @@ fi
 
 # Check if rclone remote has any issues
 say_debug "Checking rclone remote for any issues..."
-if ! rclone about "$rclone_destination" > /dev/null 2>&1; then
+if ! rclone about "$rclone_destination" >/dev/null 2>&1; then
   say_error "Could not read rclone remote '${rclone_destination}'. See the \`rclone_destination\` setting."
   say_error "If the remote looks correct, check for issues by running: \`rclone about ${rclone_destination}\`"
   delete_lock_file
@@ -475,7 +462,6 @@ if ! rclone about "$rclone_destination" > /dev/null 2>&1; then
 else
   say_debug "Remote exists. No issues found." success
 fi
-
 
 # Ensure xattrs are supported, if enabled
 if [ "$ytdl_write_metadata_to_xattrs" = true ]; then
@@ -489,7 +475,7 @@ if [ "$ytdl_write_metadata_to_xattrs" = true ]; then
 
   xattr_test_file="${ytdl_download_dir%/}/ytdlrc_xattr_test"
   if touch "$xattr_test_file"; then
-    if ! setfattr -n "user.testAttr" -v "attribute value" "$xattr_test_file" > /dev/null 2>&1; then
+    if ! setfattr -n "user.testAttr" -v "attribute value" "$xattr_test_file" >/dev/null 2>&1; then
       say_error "Extended attributes not supported."
       say_error "Please set \`ytdl_write_metadata_to_xattrs\` to \`false\`."
       rm "$xattr_test_file"
@@ -508,7 +494,6 @@ if [ "$ytdl_write_metadata_to_xattrs" = true ]; then
 
 fi
 
-
 # Read through `ytdl_snatch_list` file only if it contains URL's /
 # usernames, assign each line to the `url` variable
 #     * We do this instead of using youtube-dl's `--batch-file` option in
@@ -516,7 +501,7 @@ fi
 #       directory hierarchy on the rclone remote destination
 if [ -s "$ytdl_snatch_list" ]; then
   mkfifo "$fifo"
-  grep -v '^ *#' < "$ytdl_snatch_list" > "$fifo" &
+  grep -v '^ *#' <"$ytdl_snatch_list" >"$fifo" &
   while IFS= read -r url; do
     if [ -n "$url" ]; then
       say "Processing ${url}..."
@@ -552,7 +537,7 @@ if [ -s "$ytdl_snatch_list" ]; then
           if test "${video_value#*$string_to_trim}" != "$video_value"; then
             # Printout example: "Trimming off 'Uploads_from_' from 'Uploads_from_Channel_Name'"
             say_debug "Trimming off '${string_to_trim}' from '${video_value}'..."
-            video_value="$(printf %s\\n "$video_value"|sed "s/^${string_to_trim}//")"
+            video_value="$(printf %s\\n "$video_value" | sed "s/^${string_to_trim}//")"
             # Printout example: "New 'playlist_title' is 'Channel_Name'"
             say_debug "New '${ytdl_video_value}' is '${video_value}'" success
           fi
@@ -561,7 +546,7 @@ if [ -s "$ytdl_snatch_list" ]; then
         if [ "$ytdl_lowercase_directories" = true ]; then
           # Printout example: "Converting 'Channel_Name' to lowercase..."
           say_debug "Converting '${video_value}' to lowercase..."
-          video_value=$(printf %s\\n "$video_value"|tr '[:upper:]' '[:lower:]')
+          video_value=$(printf %s\\n "$video_value" | tr '[:upper:]' '[:lower:]')
           # Printout example: "New 'playlist_title' is 'channel_name'
           say_debug "New '${ytdl_video_value}' is '${video_value}'" success
         fi
@@ -593,7 +578,7 @@ if [ -s "$ytdl_snatch_list" ]; then
       fi
 
     fi
-  done < "$fifo"
+  done <"$fifo"
   rm "$fifo"
 fi
 

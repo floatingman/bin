@@ -10,5 +10,5 @@ for f in "" 30 31 32 33 34 35 36 37; do
             printf " \033[4%s;%sm%s\033[0m" "$b" "$s$f" " gYw "
         done
         echo
-     done
+    done
 done

@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-
 function usage() {
     echo "Usage: $0 [options...]"
     echo ""
@@ -17,7 +16,10 @@ if [ -z "$1" ]; then
     usage 1>&2
 fi
 
-if [[ $(id -u) -ne 0 ]]; then echo "please run as root"; exit 1; fi
+if [[ $(id -u) -ne 0 ]]; then
+    echo "please run as root"
+    exit 1
+fi
 
 function msg() {
     echo " * $1"
@@ -76,8 +78,8 @@ if ! [ -f $DISK_IMG ]; then
     exit 1
 fi
 
-gunzip=$(which unpigz 2> /dev/null || which gunzip 2> /dev/null || true)
-unxz=$(which unxz 2> /dev/null || true)
+gunzip=$(which unpigz 2>/dev/null || which gunzip 2>/dev/null || true)
+unxz=$(which unxz 2>/dev/null || true)
 
 if [[ $DISK_IMG == *.gz ]]; then
     if [ -z "$gunzip" ]; then
@@ -85,7 +87,7 @@ if [[ $DISK_IMG == *.gz ]]; then
         exit 1
     fi
     msg "decompressing the .gz compressed image"
-    $gunzip -c $DISK_IMG > ${DISK_IMG%???}
+    $gunzip -c $DISK_IMG >${DISK_IMG%???}
     DISK_IMG=${DISK_IMG%???}
 elif [[ $DISK_IMG == *.xz ]]; then
     if [ -z "$unxz" ]; then
@@ -93,7 +95,7 @@ elif [[ $DISK_IMG == *.xz ]]; then
         exit 1
     fi
     msg "decompressing the .xz compressed image"
-    $unxz -T 0 -c $DISK_IMG > ${DISK_IMG%???}
+    $unxz -T 0 -c $DISK_IMG >${DISK_IMG%???}
     DISK_IMG=${DISK_IMG%???}
 fi
 
@@ -102,7 +104,7 @@ msg "writing disk image to sdcard"
 dd if=$DISK_IMG of=$SDCARD_DEV bs=1048576
 sync
 
-if which partprobe > /dev/null 2>&1; then
+if which partprobe >/dev/null 2>&1; then
     msg "re-reading sdcard partition table"
     partprobe ${SDCARD_DEV}
     sleep 1
@@ -111,11 +113,11 @@ fi
 msg "mounting sdcard"
 mkdir -p $BOOT
 
-if [ `uname` == "Darwin" ]; then
+if [ $(uname) == "Darwin" ]; then
     BOOT_DEV=${SDCARD_DEV}s1 # e.g. /dev/disk4s1
     diskutil unmountDisk ${SDCARD_DEV}
     mount -ft msdos $BOOT_DEV $BOOT
-else # assuming Linux
+else                         # assuming Linux
     BOOT_DEV=${SDCARD_DEV}p1 # e.g. /dev/mmcblk0p1
     if ! [ -e ${SDCARD_DEV}p1 ]; then
         BOOT_DEV=${SDCARD_DEV}1 # e.g. /dev/sdc1
@@ -127,16 +129,16 @@ fi
 if [ -n "$SSID" ]; then
     msg "creating wireless configuration"
     conf=$BOOT/wpa_supplicant.conf
-    echo "update_config=1" > $conf
-    echo "ctrl_interface=/var/run/wpa_supplicant" >> $conf
-    echo "network={" >> $conf
-    echo "    scan_ssid=1" >> $conf
-    echo "    ssid=\"$SSID\"" >> $conf
+    echo "update_config=1" >$conf
+    echo "ctrl_interface=/var/run/wpa_supplicant" >>$conf
+    echo "network={" >>$conf
+    echo "    scan_ssid=1" >>$conf
+    echo "    ssid=\"$SSID\"" >>$conf
     if [ -n "$PSK" ]; then
-        echo "    psk=\"$PSK\"" >> $conf
+        echo "    psk=\"$PSK\"" >>$conf
     fi
-    echo "}" >> $conf
-    echo "" >> $conf
+    echo "}" >>$conf
+    echo "" >>$conf
 fi
 
 # modem
@@ -144,17 +146,17 @@ if [ -n "$MODEM" ]; then
     msg "creating mobile network configuration"
     conf=$BOOT/ppp
     mkdir -p $conf
-    echo $MODEM > $conf/modem
-    echo "AT+CGDCONT=1,\"IP\",\"$APN\"" > $conf/apn
-    echo > $conf/extra
-    echo > $conf/auth
-    echo > $conf/pin
+    echo $MODEM >$conf/modem
+    echo "AT+CGDCONT=1,\"IP\",\"$APN\"" >$conf/apn
+    echo >$conf/extra
+    echo >$conf/auth
+    echo >$conf/pin
     if [ -n "$MUSER" ]; then
-        echo "user \"$MUSER\"" > $conf/auth
-        echo "password \"$MPWD\"" >> $conf/auth
+        echo "user \"$MUSER\"" >$conf/auth
+        echo "password \"$MPWD\"" >>$conf/auth
     fi
     if [ -n "$PIN" ]; then
-        echo "AT+CPIN=$PIN" > $conf/pin
+        echo "AT+CPIN=$PIN" >$conf/pin
     fi
 fi
 
@@ -162,9 +164,9 @@ fi
 if [ -n "$IP" ] && [ -n "$GW" ] && [ -n "$DNS" ]; then
     msg "setting static IP configuration"
     conf=$BOOT/static_ip.conf
-    echo "STATIC_IP=\"$IP\"" > $conf
-    echo "STATIC_GW=\"$GW\"" >> $conf
-    echo "STATIC_DNS=\"$DNS\"" >> $conf
+    echo "STATIC_IP=\"$IP\"" >$conf
+    echo "STATIC_GW=\"$GW\"" >>$conf
+    echo "STATIC_DNS=\"$DNS\"" >>$conf
 fi
 
 msg "unmounting sdcard"

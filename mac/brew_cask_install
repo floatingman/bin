@@ -2,7 +2,7 @@
 
 if [[ -z $1 ]]; then
   package=$(brew casks | fzf)
-  else
+else
   package=$(brew casks | grep $1 | fzf)
 fi
 

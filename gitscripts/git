@@ -5,47 +5,49 @@
 #
 ###
 
-original_args=( "$@" )
+original_args=("$@")
 
 case "$1" in
-  submodule)
+submodule)
+  shift
+
+  case "$1" in
+  rm)
+    if [[ "$1" == '-f' ]]; then
+      shift
+      rm_files=true
+    else
+      rm_files=false
+    fi
+
     shift
+    submodule="${1}"
 
-    case "$1" in
-      rm)
-        if [[ "$1" == '-f' ]]; then
-          shift; rm_files=true
-        else
-          rm_files=false
-        fi
+    if [[ -n "$submodule" ]]; then
+      # strip trailing slash(es) when present
+      if [[ "$submodule" =~ ^(.*[^/])/*$ ]]; then
+        submodule="${BASH_REMATCH[1]}"
+      fi
 
-        shift; submodule="${1}"
+      echo "removing submodule registration..."
+      git config -f .git/config --remove-section submodule.${submodule}
+      git config -f .gitmodules --remove-section submodule.${submodule}
 
-        if [[ -n "$submodule" ]]; then
-          # strip trailing slash(es) when present
-          if [[ "$submodule" =~ ^(.*[^/])/*$ ]]; then
-            submodule="${BASH_REMATCH[1]}"
-          fi
+      echo "removing committed files from tree..."
+      git rm --cached "$submodule"
 
-          echo "removing submodule registration..."
-          git config -f .git/config --remove-section submodule.${submodule}
-          git config -f .gitmodules --remove-section submodule.${submodule}
+      if $rm_files; then
+        echo "removing files..."
+        rm -fr "$submodule/"
+      fi
 
-          echo "removing committed files from tree..."
-          git rm --cached "$submodule"
-
-          if $rm_files; then
-            echo "removing files..."
-            rm -fr "$submodule/"
-          fi
-
-          exit $?
-        fi
-
-        ;;
-    esac
+      exit $?
+    fi
 
     ;;
+  esac
+
+  ;;
 esac
 
 # if the case statement doesn't exit, pass-through
