@@ -1,0 +1,53 @@
+#!/bin/bash
+# Update i3status colors to match theme
+
+update_i3status_colors() {
+    local theme="$1"
+    local mode="$2"
+
+    case "$theme" in
+        github)
+            if [ "$mode" = "dark" ]; then
+                # GitHub Dark
+                sed -i 's/^        color_good =.*/        color_good = "#3fb950"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#f85149"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#d29922"/' ~/.config/i3status/config
+            else
+                # GitHub Light Dim
+                sed -i 's/^        color_good =.*/        color_good = "#3fb950"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#da3b47"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#d29922"/' ~/.config/i3status/config
+            fi
+            ;;
+        gruvbox)
+            if [ "$mode" = "dark" ]; then
+                # Gruvbox Dark
+                sed -i 's/^        color_good =.*/        color_good = "#98971a"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#cc241d"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#d79921"/' ~/.config/i3status/config
+            else
+                # Gruvbox Light
+                sed -i 's/^        color_good =.*/        color_good = "#98971a"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#cc241d"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#d79921"/' ~/.config/i3status/config
+            fi
+            ;;
+        nord)
+            if [ "$mode" = "dark" ]; then
+                # Nord Dark
+                sed -i 's/^        color_good =.*/        color_good = "#a3be8c"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#bf616a"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#ebcb8b"/' ~/.config/i3status/config
+            else
+                # Nord Light
+                sed -i 's/^        color_good =.*/        color_good = "#a3be8c"/' ~/.config/i3status/config
+                sed -i 's/^        color_bad =.*/        color_bad = "#bf616a"/' ~/.config/i3status/config
+                sed -i 's/^        color_degraded =.*/        color_degraded = "#ebcb8b"/' ~/.config/i3status/config
+            fi
+            ;;
+    esac
+
+    # Reload i3status (i3 inherits new bar on next reload)
+    killall -SIGUSR1 i3status 2>/dev/null || true
+    i3-msg reload 2>/dev/null || true
+}
