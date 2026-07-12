@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ps aux | grep -F --color=auto -i $1 | grep -F -v $0 | grep -F -v grep | grep -F --color=auto -i $1
